@@ -8,16 +8,18 @@ export const SKILLS = 63
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const GREEK = ['α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'θ']
 
-// One constellation per topic, laid out on a 100 x 58 plate.
+// One constellation per topic, laid out on a 100 x 58 plate. Colours are the validated eight-slot
+// categorical palette for dark surfaces, in fixed order. The Latin names give each star its
+// designation in the old atlas style.
 export const CONSTELLATIONS = {
-  ai: { name: 'Machina', gen: 'Machinae', sub: 'AI and agents', x: 17, y: 15 },
-  data: { name: 'Tabula', gen: 'Tabulae', sub: 'Data and databases', x: 42, y: 12 },
-  backend: { name: 'Servitor', gen: 'Servitoris', sub: 'Backend and APIs', x: 66, y: 16 },
-  sec: { name: 'Clipeus', gen: 'Clipei', sub: 'Security', x: 88, y: 12 },
-  ops: { name: 'Navis', gen: 'Navis', sub: 'DevOps and delivery', x: 14, y: 42 },
-  found: { name: 'Fundamentum', gen: 'Fundamenti', sub: 'Foundations', x: 39, y: 42 },
-  tools: { name: 'Instrumentum', gen: 'Instrumenti', sub: 'Developer tools', x: 63, y: 41 },
-  skills: { name: 'Codex', gen: 'Codicis', sub: `${SKILLS} agent skills`, x: 86, y: 40 },
+  ai: { label: 'AI & agents', color: '#3987e5', name: 'Machina', gen: 'Machinae', x: 17, y: 15 },
+  data: { label: 'Data & databases', color: '#d95926', name: 'Tabula', gen: 'Tabulae', x: 42, y: 12 },
+  backend: { label: 'Backend & APIs', color: '#199e70', name: 'Servitor', gen: 'Servitoris', x: 66, y: 16 },
+  sec: { label: 'Security', color: '#c98500', name: 'Clipeus', gen: 'Clipei', x: 88, y: 12 },
+  ops: { label: 'DevOps & delivery', color: '#d55181', name: 'Navis', gen: 'Navis', x: 14, y: 42 },
+  found: { label: 'Foundations', color: '#008300', name: 'Fundamentum', gen: 'Fundamenti', x: 39, y: 42 },
+  tools: { label: 'Developer tools', color: '#9085e9', name: 'Instrumentum', gen: 'Instrumenti', x: 63, y: 41 },
+  skills: { label: 'Agent skills', color: '#e66767', name: 'Codex', gen: 'Codicis', x: 86, y: 40 },
 }
 
 // Offsets from a constellation's centre, in order of birth.
@@ -76,18 +78,19 @@ export function achievementList(groups, total) {
   const constellations = Object.keys(CONSTELLATIONS)
     .filter((k) => groups[k])
     .map((k) => {
-      const { name } = CONSTELLATIONS[k]
+      const { name, label } = CONSTELLATIONS[k]
       const count = groups[k].length
       return {
         id: `con-${k}`,
         name,
-        hint: count === 1 ? `Open the star at the heart of ${name}.` : `Open all ${count} stars in ${name}.`,
+        topic: k,
+        hint: count === 1 ? `Open the ${label.toLowerCase()} star.` : `Open all ${count} ${label} stars.`,
       }
     })
   return [
-    { id: 'first', name: 'First light', hint: 'Open any star.' },
-    { id: 'month', name: 'Thirty nights', hint: 'Play the month through to the last night.' },
-    { id: 'peak', name: 'The busiest night', hint: 'Stop the slider on the night the most stars were born.' },
+    { id: 'first', name: 'First light', hint: 'Open any star on the chart.' },
+    { id: 'month', name: 'Thirty nights', hint: 'Play the month through to the last day.' },
+    { id: 'peak', name: 'Busiest day', hint: 'Find the day the most projects were created.' },
     ...constellations,
     { id: 'all', name: 'Cartographer', hint: `Open all ${total} stars.` },
   ]

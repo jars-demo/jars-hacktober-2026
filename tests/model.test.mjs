@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { REPOS, SNAPSHOT } from '../public/assets/data.js'
 import { CONSTELLATIONS, DAYS, SHAPE, achievementList, chart, dateText, earnedIds } from '../public/assets/model.js'
@@ -66,9 +66,25 @@ test('opening one constellation earns its badge, and only that one', () => {
   assert.deepEqual(ids, ['first', 'con-data'])
 })
 
+test('every topic has its own colour and label', () => {
+  const all = Object.values(CONSTELLATIONS)
+  assert.equal(new Set(all.map((c) => c.color)).size, all.length)
+  assert.equal(new Set(all.map((c) => c.label)).size, all.length)
+})
+
 test('the page states the same numbers as the data', () => {
   const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8')
-  assert.match(html, /Thirty-two stars in <em>thirty nights<\/em>/)
+  assert.match(html, /Thirty-two projects in thirty days\./)
   assert.match(html, /32 public repositories/)
   assert.match(html, /each of the 63 skills/)
+})
+
+test('every icon the page and manifest name exists', () => {
+  const pub = new URL('../public/', import.meta.url)
+  const html = readFileSync(new URL('index.html', pub), 'utf8')
+  const manifest = JSON.parse(readFileSync(new URL('site.webmanifest', pub), 'utf8'))
+  const paths = [...html.matchAll(/(?:href|src)="\/([^"#]+\.(?:svg|png|ico|webmanifest))"/g)].map((m) => m[1])
+  paths.push(...manifest.icons.map((i) => i.src.slice(1)))
+  assert.ok(paths.length >= 6)
+  for (const p of paths) assert.ok(existsSync(new URL(p, pub)), `${p} is missing`)
 })

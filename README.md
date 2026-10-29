@@ -1,38 +1,39 @@
-# Thirty-two stars in thirty nights
+# Thirty-two projects in thirty days
 
-**The JARS DEMO October, 2026, as a sky chart you can play.** Live at [hacktober2026.jishanahmed.in](https://hacktober2026.jishanahmed.in).
+**The JARS DEMO October, 2026, as an interactive sky chart.** Live at [hacktober2026.jishanahmed.in](https://hacktober2026.jishanahmed.in).
 
-![The sky chart: eight constellations of JARS DEMO projects](public/og.png)
+![Thirty-two projects in thirty days: the JARS DEMO sky chart](public/og.png)
 
-Between 30 September and 29 October 2026, the [JARS DEMO](https://github.com/jars-demo) organization went from nothing to 32 public projects and 63 agent skills. This page plots each project as a star, on the night its repository was created, and groups them into constellations by what they teach.
+Between 30 September and 29 October 2026, the [JARS DEMO](https://github.com/jars-demo) organization went from nothing to 32 public projects and 63 agent skills. This page plots each project as a star on the day its repository was created, and groups them by topic into constellations.
 
 ## What you can do
 
-- **Play the month.** Watch the sky fill night by night, with a bell for every new star. Seventeen projects arrived on 17 and 18 October alone.
-- **Scrub through the nights.** The histogram under the chart shows how many stars were born each night.
-- **Chart the sky.** Open a star to read what the project is, with links to its repository and site. Each star you open is charted.
-- **Earn the badges.** Twelve of them: one for each constellation, one for the busiest night, one for playing the month through and one for charting all 32 stars.
+- **Play the month.** Watch the chart fill day by day, with a bell for every new project. Nine arrived on 17 October alone.
+- **Scrub the timeline.** The bars under the chart show how many projects were created each day. Hover for the count, click to jump.
+- **Filter by topic.** The topic chips highlight one constellation and filter the project table. Search the table by name, description or language.
+- **Chart the sky.** Open a star to see what the project is, with links to its repository and site. Every star you open is charted.
+- **Earn the badges.** Twelve of them: one for each topic, one for finding the busiest day, one for playing the whole month and one for charting all 32 stars.
 
-Arrow keys move between stars, and the sound can be turned off. Progress is kept in your browser only.
+Arrow keys move between stars, the sound can be turned off, and motion respects the reduced-motion setting. Progress is kept in your browser only.
 
-## The constellations
+## The topics
 
-| Constellation | Topic               | Stars |
-| ------------- | ------------------- | ----: |
-| Machina       | AI and agents       |     5 |
-| Tabula        | Data and databases  |     5 |
-| Servitor      | Backend and APIs    |     6 |
-| Clipeus       | Security            |     3 |
-| Navis         | DevOps and delivery |     4 |
-| Fundamentum   | Foundations         |     5 |
-| Instrumentum  | Developer tools     |     3 |
-| Codex         | 63 agent skills     |     1 |
+| Topic             | Constellation | Projects |
+| ----------------- | ------------- | -------: |
+| AI & agents       | Machina       |        5 |
+| Data & databases  | Tabula        |        5 |
+| Backend & APIs    | Servitor      |        6 |
+| Security          | Clipeus       |        3 |
+| DevOps & delivery | Navis         |        4 |
+| Foundations       | Fundamentum   |        5 |
+| Developer tools   | Instrumentum  |        3 |
+| Agent skills      | Codex         |        1 |
 
-Greek letters follow the old atlas rule, in order of appearance: a constellation's first star is α, its second β. The cluster around Codex has one point for each skill in [jars-skills](https://github.com/jars-demo/jars-skills).
+Topic colours are the eight-slot categorical palette for dark surfaces, checked for colour-blind separation and contrast, and always shown next to the topic's name. Each star also gets a designation in the old atlas style, in order of appearance: a constellation's first star is α, its second β. The cluster around the agent skills star has one point for each skill in [jars-skills](https://github.com/jars-demo/jars-skills).
 
 ## The sound
 
-Every sound is synthesised in the browser with the Web Audio API: there are no audio files. Each star has its own note, taken from the A minor pentatonic scale, so any stars born on the same night still sound good together. A low drone plays under the month, and a short arpeggio marks each badge.
+Every sound is synthesised in the browser with the Web Audio API: there are no audio files. Each star has its own note, taken from the A minor pentatonic scale, so any projects created on the same day still sound good together. A low drone plays under the month, and a short arpeggio marks each badge.
 
 ## Run it locally
 
@@ -49,6 +50,8 @@ The page uses ES modules, so open it through a server, not as a file.
 
 ```text
 public/index.html        the page
+public/favicon.*         favicon (SVG and ICO), plus apple-touch-icon.png, icon-192/512.png and site.webmanifest
+public/og.png            the 1200 x 630 share image
 public/assets/data.js    the 32 repositories, from the GitHub API on 29 October 2026
 public/assets/model.js   positions, names, notes and badges: pure functions, tested
 public/assets/audio.js   the synthesised sound
