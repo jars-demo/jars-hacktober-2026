@@ -107,6 +107,51 @@ export function finale() {
   if (ready()) [45, 52, 57, 60, 64, 69, 76].forEach((note, i) => bell(note, i * 0.13, 0.1, 4.5))
 }
 
+// A constellation is complete: a quick sparkle, high and quiet.
+export function complete() {
+  if (ready()) [81, 84, 88, 93].forEach((note, i) => bell(note, i * 0.07, 0.07, 1.8))
+}
+
+// A rising swell of filtered noise, for the curtain going up.
+export function whoosh() {
+  if (!ready()) return
+  const t = ctx.currentTime
+  const length = 1.6
+  const buffer = ctx.createBuffer(1, Math.round(ctx.sampleRate * length), ctx.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1
+  const source = ctx.createBufferSource()
+  source.buffer = buffer
+  const filter = ctx.createBiquadFilter()
+  filter.type = 'bandpass'
+  filter.Q.value = 0.8
+  filter.frequency.setValueAtTime(250, t)
+  filter.frequency.exponentialRampToValueAtTime(2200, t + length * 0.7)
+  const gain = ctx.createGain()
+  gain.gain.setValueAtTime(0.0001, t)
+  gain.gain.exponentialRampToValueAtTime(0.06, t + length * 0.5)
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + length)
+  source.connect(filter).connect(gain)
+  gain.connect(master)
+  gain.connect(wet)
+  source.start(t)
+  source.stop(t + length)
+}
+
+// The drone moves through Am, F, C and G, one chord a week.
+const CHORDS = [
+  [45, 52, 57, 60],
+  [41, 48, 53, 57],
+  [48, 55, 60, 64],
+  [43, 50, 55, 59],
+]
+export function padChord(index) {
+  if (!pad) return
+  const chord = CHORDS[index % CHORDS.length]
+  const t = ctx.currentTime
+  pad.oscs.forEach((osc, i) => osc.frequency.setTargetAtTime(hz(chord[i >> 1]), t, 0.5))
+}
+
 // A low, slow drone under the month while it plays.
 export function startPad() {
   if (!ready() || pad) return

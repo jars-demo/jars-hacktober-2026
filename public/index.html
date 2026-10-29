@@ -54,7 +54,7 @@
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
               <path
                 fill="currentColor"
-                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.88.87 2.34.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.290 6.53 5.47 7.59.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.88.87 2.34.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.530-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.070-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"
               />
             </svg>
             <span>Source</span>
@@ -69,8 +69,17 @@
         <h1 id="title">Thirty-two projects in thirty days.</h1>
         <p class="lede">
           Every public project in the JARS DEMO organization, plotted on the day its repository was created and grouped
-          by topic into constellations. Play the month, open each star and collect all twelve badges.
+          by topic into constellations. Watch the month unfold, open each star and collect all twelve badges.
         </p>
+        <div class="hero-cta">
+          <button class="btn primary lg" id="watch" type="button">
+            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+              <path d="M3 1.5v11l9-5.5z" fill="currentColor" />
+            </svg>
+            Watch the month <span class="dur" id="watchDur">1:23</span>
+          </button>
+          <a class="btn lg" href="#projects">Browse all projects</a>
+        </div>
         <dl class="kpis">
           <div>
             <dt>Projects</dt>
@@ -94,12 +103,17 @@
       <section class="panel" id="explore" aria-labelledby="exploreTitle">
         <h2 id="exploreTitle" class="sr-only">Sky chart</h2>
         <div class="toolbar">
+          <span class="th-brand th-only">
+            <img src="/favicon.svg" width="26" height="26" alt="" />
+            <span>JARS DEMO · October 2026</span>
+          </span>
           <div class="tools">
             <button class="btn primary" id="play" type="button">
               <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
                 <path id="playIcon" d="M3 1.5v11l9-5.5z" fill="currentColor" />
               </svg>
               <span id="playLabel">Play the month</span>
+              <span class="dur" id="playDur">1:23</span>
             </button>
             <button class="btn" id="sound" type="button" aria-pressed="true">
               <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
@@ -124,6 +138,10 @@
               <span id="soundLabel">Sound on</span>
             </button>
           </div>
+          <div class="th-time th-only" aria-hidden="true">
+            <span class="th-bar"><i id="thBar"></i></span>
+            <span id="thClock">0:00 / 1:23</span>
+          </div>
           <div class="progress" aria-label="Your progress">
             <div class="meter">
               <span class="meter-label">Charted</span>
@@ -136,6 +154,12 @@
               <span class="track" aria-hidden="true"><i id="badgeBar"></i></span>
             </div>
           </div>
+          <button class="btn th-only" id="exit" type="button" aria-label="Exit (Esc)">
+            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+              <path d="M2.5 2.5l9 9M11.5 2.5l-9 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+            <span>Exit</span>
+          </button>
         </div>
 
         <div class="chips" id="chips" role="group" aria-label="Highlight a topic"></div>
@@ -159,8 +183,50 @@
               <g id="lines"></g>
               <g id="labels"></g>
               <g id="cluster"></g>
+              <g id="fx"></g>
               <g id="stars"></g>
             </svg>
+            <div class="th-date th-only" aria-hidden="true">
+              <span class="th-day" id="thDay">Day 1 of 30</span>
+              <span class="th-big" id="thBig">30 Sep</span>
+              <span class="th-sub" id="thSub"></span>
+            </div>
+            <div class="th-count th-only" aria-hidden="true">
+              <b id="thCount">0</b>
+              <span>projects</span>
+            </div>
+            <div class="th-caption th-only" id="thCaption"></div>
+            <div class="th-card th-intro" id="thIntro" hidden>
+              <p class="th-eyebrow">JARS DEMO · October 2026</p>
+              <h2>Thirty days. Thirty-two projects.</h2>
+              <p class="th-lead">Watch them appear, one by one.</p>
+            </div>
+            <div class="th-card th-final" id="thFinal" hidden>
+              <p class="th-eyebrow">October 2026 · complete</p>
+              <h2>One month. One sky.</h2>
+              <dl class="th-stats">
+                <div>
+                  <dt>projects</dt>
+                  <dd data-to="32">0</dd>
+                </div>
+                <div>
+                  <dt>agent skills</dt>
+                  <dd data-to="63">0</dd>
+                </div>
+                <div>
+                  <dt>topics</dt>
+                  <dd data-to="8">0</dd>
+                </div>
+                <div>
+                  <dt>days</dt>
+                  <dd data-to="30">0</dd>
+                </div>
+              </dl>
+              <div class="th-actions">
+                <button class="btn primary lg" id="replay" type="button">Replay</button>
+                <button class="btn lg" id="explore-chart" type="button">Explore the chart</button>
+              </div>
+            </div>
           </figure>
           <aside class="detail" id="detail" aria-live="polite"></aside>
         </div>

@@ -32,6 +32,18 @@ export const SHAPE = [
   [9, 4],
 ]
 
+// Pacing of the played month, in milliseconds: an intro, every day (a quiet one is short, a busy
+// one gives each new project its own moment), then the finale.
+export const PACE = { intro: 3600, quiet: 900, day: 1400, star: 1200, finale: 8000 }
+
+export const runtime = (perDay) =>
+  PACE.intro + perDay.reduce((t, n) => t + (n ? PACE.day + n * PACE.star : PACE.quiet), 0) + PACE.finale
+
+export function clock(ms) {
+  const s = Math.round(ms / 1000)
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+}
+
 // A minor pentatonic from A3: any notes played together still sound good.
 const SCALE = [0, 3, 5, 7, 10]
 export const noteOf = (step) => 57 + 12 * Math.floor(step / SCALE.length) + SCALE[step % SCALE.length]

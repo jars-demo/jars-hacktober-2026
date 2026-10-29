@@ -2,7 +2,17 @@ import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { REPOS, SNAPSHOT } from '../public/assets/data.js'
-import { CONSTELLATIONS, DAYS, SHAPE, achievementList, chart, dateText, earnedIds } from '../public/assets/model.js'
+import {
+  CONSTELLATIONS,
+  DAYS,
+  SHAPE,
+  achievementList,
+  chart,
+  clock,
+  dateText,
+  earnedIds,
+  runtime,
+} from '../public/assets/model.js'
 
 const sky = chart(REPOS)
 
@@ -87,4 +97,11 @@ test('every icon the page and manifest name exists', () => {
   paths.push(...manifest.icons.map((i) => i.src.slice(1)))
   assert.ok(paths.length >= 6)
   for (const p of paths) assert.ok(existsSync(new URL(p, pub)), `${p} is missing`)
+})
+
+test('the played month runs between one and two minutes', () => {
+  const ms = runtime(sky.perDay)
+  assert.ok(ms >= 60000 && ms <= 120000, `runtime ${ms} ms`)
+  assert.equal(clock(ms), '1:23')
+  assert.equal(clock(59600), '1:00')
 })

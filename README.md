@@ -8,7 +8,7 @@ Between 30 September and 29 October 2026, the [JARS DEMO](https://github.com/jar
 
 ## What you can do
 
-- **Play the month.** Watch the chart fill day by day, with a bell for every new project. Nine arrived on 17 October alone.
+- **Watch the month.** A full-screen show of about a minute and a half: the camera flies to each new star as it is born, a caption introduces every project, the date and count tick up, constellations light up as they complete, and it ends with a meteor shower and the totals. Pause with Space, leave with Esc. Nine projects arrived on 17 October alone.
 - **Scrub the timeline.** The bars under the chart show how many projects were created each day. Hover for the count, click to jump.
 - **Filter by topic.** The topic chips highlight one constellation and filter the project table. Search the table by name, description or language.
 - **Chart the sky.** Open a star to see what the project is, with links to its repository and site. Every star you open is charted.
@@ -33,7 +33,7 @@ Topic colours are the eight-slot categorical palette for dark surfaces, checked 
 
 ## The sound
 
-Every sound is synthesised in the browser with the Web Audio API: there are no audio files. Each star has its own note, taken from the A minor pentatonic scale, so any projects created on the same day still sound good together. A low drone plays under the month, and a short arpeggio marks each badge.
+Every sound is synthesised in the browser with the Web Audio API: there are no audio files. Each star has its own note, taken from the A minor pentatonic scale, so any projects created on the same day still sound good together. A low drone moves through Am, F, C and G, one chord a week; a sparkle marks each finished constellation and a short arpeggio each badge.
 
 ## Run it locally
 
