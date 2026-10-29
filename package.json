@@ -1,0 +1,15 @@
+{
+  "name": "jars-hacktober-2026",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The JARS DEMO October, 2026, as a sky chart you can play.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "start": "npx --yes serve@14.2.4 public"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

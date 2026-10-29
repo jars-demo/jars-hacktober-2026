@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Thirty Nights · JARS DEMO</title>
+    <meta
+      name="description"
+      content="Every JARS DEMO project from October 2026 as a star on a sky chart: lit on the night it was created, grouped into constellations by topic, with sound."
+    />
+    <meta name="theme-color" content="#0c1022" />
+    <link rel="canonical" href="https://hacktober2026.jishanahmed.in/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://hacktober2026.jishanahmed.in/" />
+    <meta property="og:title" content="Thirty-two stars in thirty nights" />
+    <meta
+      property="og:description"
+      content="The JARS DEMO October, 2026: 32 projects and 63 agent skills in 30 nights, as a sky chart you can play."
+    />
+    <meta property="og:image" content="https://hacktober2026.jishanahmed.in/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=IBM+Plex+Mono:wght@400;500&family=Karla:wght@400;500;700&display=swap"
+    />
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script type="module" src="assets/app.js"></script>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <div class="intro">
+          <span class="eyebrow">JARS DEMO · October 2026 · 30 Sep to 29 Oct</span>
+          <h1>Thirty-two stars in <em>thirty nights</em></h1>
+          <p class="lede">
+            Every public project in the JARS DEMO organization, plotted on the night it was first pushed and grouped
+            into constellations by what it teaches. <strong>Press play to hear the month happen.</strong>
+            Open every star to chart the sky.
+          </p>
+        </div>
+        <dl class="hud" aria-label="Your progress">
+          <div class="meter">
+            <dt>Stars charted</dt>
+            <dd><b id="chartedCount">0</b> / <span id="chartedTotal">32</span></dd>
+            <div class="track" aria-hidden="true"><i id="chartedBar"></i></div>
+          </div>
+          <div class="meter">
+            <dt>Badges</dt>
+            <dd><b id="badgeCount">0</b> / <span id="badgeTotal">12</span></dd>
+            <div class="track" aria-hidden="true"><i id="badgeBar"></i></div>
+          </div>
+        </dl>
+      </header>
+
+      <figure class="plate">
+        <canvas id="field" aria-hidden="true"></canvas>
+        <svg id="sky" viewBox="0 0 100 58" role="group" aria-label="Sky chart of the JARS DEMO projects">
+          <defs>
+            <radialGradient id="halo">
+              <stop offset="0" stop-color="#fff6dd" stop-opacity="0.95" />
+              <stop offset="0.35" stop-color="#e9c46a" stop-opacity="0.35" />
+              <stop offset="1" stop-color="#e9c46a" stop-opacity="0" />
+            </radialGradient>
+            <linearGradient id="trail" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="9" y2="-3.6">
+              <stop offset="0" stop-color="#fff6dd" stop-opacity="1" />
+              <stop offset="1" stop-color="#fff6dd" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <g id="graticule"></g>
+          <g id="lines"></g>
+          <g id="labels"></g>
+          <g id="cluster"></g>
+          <g id="stars"></g>
+        </svg>
+      </figure>
+
+      <div class="controls">
+        <button class="play" id="play" type="button">
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+            <path id="playIcon" d="M3 1.5v11l9-5.5z" fill="currentColor" />
+          </svg>
+          <span id="playLabel">Play the month</span>
+        </button>
+        <button class="ghost" id="sound" type="button" aria-pressed="true">
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+            <path d="M2.5 6.5h3l4-3.5v12l-4-3.5h-3z" fill="currentColor" />
+            <path
+              id="soundWaves"
+              d="M12 6a4 4 0 0 1 0 6M14 4a7 7 0 0 1 0 10"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.4"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span id="soundLabel">Sound on</span>
+        </button>
+        <div class="hist">
+          <div class="night" id="nightLabel" aria-live="polite"></div>
+          <div class="bars" id="bars" aria-hidden="true"></div>
+          <label for="scrub" class="sr-only">Night</label>
+          <input class="scrub" id="scrub" type="range" min="0" max="29" value="29" step="1" />
+          <div class="ticks" aria-hidden="true">
+            <span>30 Sep</span><span>10 Oct</span><span>20 Oct</span><span>29 Oct</span>
+          </div>
+        </div>
+        <div class="tally"><b id="count">32</b><span>stars lit</span></div>
+      </div>
+
+      <div class="lower">
+        <aside class="card" id="card" aria-live="polite"></aside>
+        <div class="side">
+          <section aria-labelledby="badgesTitle">
+            <div class="head">
+              <h2 id="badgesTitle">Badges</h2>
+              <button class="link" id="reset" type="button">Reset progress</button>
+            </div>
+            <p class="note">Progress is kept in this browser only.</p>
+            <ul class="badges" id="badges"></ul>
+          </section>
+          <section aria-labelledby="catTitle">
+            <h2 id="catTitle">Star catalogue</h2>
+            <p class="note">
+              Greek letters follow the old atlas rule, in order of appearance: a constellation's first star is α, its
+              second β. Dates are when each repository was created on GitHub. Arrow keys move between stars.
+            </p>
+            <div class="table">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">First light</th>
+                    <th scope="col">Designation</th>
+                    <th scope="col">Project</th>
+                    <th scope="col">Constellation</th>
+                    <th scope="col"><span class="sr-only">Charted</span></th>
+                  </tr>
+                </thead>
+                <tbody id="rows"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <footer>
+        <p>
+          Data from the GitHub API on 29 October 2026: 32 public repositories in
+          <a href="https://github.com/jars-demo">jars-demo</a>, forks left out. The cluster in Codex has one point for
+          each of the 63 skills in <a href="https://github.com/jars-demo/jars-skills">jars-skills</a>. Every sound is
+          made in your browser.
+        </p>
+        <p>
+          Made by <a href="https://jishanahmed.in">Jishanahmed AR Shaikh</a> ·
+          <a href="https://github.com/jars-demo/jars-hacktober-2026">Source</a> · MIT licence. An independent project,
+          not affiliated with Hacktoberfest or DigitalOcean.
+        </p>
+      </footer>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <noscript
+      ><p class="wrap">This sky chart needs JavaScript. The projects are listed at github.com/jars-demo.</p></noscript
+    >
+  </body>
+</html>

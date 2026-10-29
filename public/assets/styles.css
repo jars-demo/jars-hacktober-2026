@@ -1,0 +1,675 @@
+/* An antique celestial chart: one wide sky plate, a 30-night histogram to scrub through the month,
+   then a reading card, badges and the star catalogue, set like the tables in a printed atlas. */
+:root {
+  --sky: #0c1022;
+  --sky-2: #141a33;
+  --line: #2a3359;
+  --rule: #1d2443;
+  --star: #f3ead6;
+  --dim: #9aa3c4;
+  --faint: #6c77a3;
+  --gold: #e9b949;
+  --link: #9fc0ff;
+  --font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'Karla', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  color-scheme: dark;
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  background: var(--sky);
+  color: var(--star);
+}
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  padding: 28px max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px));
+}
+a {
+  color: var(--link);
+}
+button {
+  font: inherit;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* Header and progress */
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 36rem;
+  min-width: 0;
+}
+h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(38px, 6.4vw, 76px);
+  line-height: 0.98;
+  margin: 0;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+h1 em {
+  font-style: italic;
+  color: var(--gold);
+  font-weight: 500;
+}
+.lede {
+  max-width: 62ch;
+  color: var(--dim);
+  font-size: 17px;
+  margin: 0;
+}
+.lede strong {
+  color: var(--star);
+  font-weight: 500;
+}
+.hud {
+  display: flex;
+  gap: 28px;
+  margin: 0;
+}
+.meter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 8.5rem;
+}
+.meter dt {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.meter dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--dim);
+}
+.meter dd b {
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 600;
+  color: var(--star);
+}
+.track {
+  height: 3px;
+  background: var(--line);
+}
+.track i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--gold);
+  transition: width 400ms ease-out;
+}
+
+/* The plate */
+.plate {
+  position: relative;
+  margin: 0;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 30% 20%, #1a2147 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 70%, #191636 0%, transparent 55%), var(--sky);
+}
+.plate canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.plate svg {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.grat {
+  stroke: var(--line);
+  stroke-width: 0.08;
+  fill: none;
+}
+.grat-label {
+  font-family: var(--font-mono);
+  font-size: 1.3px;
+  fill: #56608a;
+}
+.con-line {
+  stroke: #7f93d6;
+  stroke-width: 0.16;
+  stroke-opacity: 0.55;
+  fill: none;
+}
+.con-line.drawing {
+  stroke-dasharray: var(--len);
+  stroke-dashoffset: var(--len);
+  animation: draw 700ms ease-out forwards;
+}
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.con-name {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 2.6px;
+  fill: #c9d2f2;
+}
+.con-sub {
+  font-family: var(--font-mono);
+  font-size: 1.15px;
+  letter-spacing: 0.12em;
+  fill: var(--faint);
+  text-transform: uppercase;
+}
+.con-name.done {
+  fill: var(--gold);
+}
+.star {
+  cursor: pointer;
+  outline: none;
+}
+.star .halo {
+  fill: url(#halo);
+  opacity: 0.55;
+  transition: opacity 200ms;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.star .core {
+  fill: var(--star);
+}
+.star .hit {
+  fill: transparent;
+}
+.star .ring {
+  opacity: 0;
+}
+.star:hover .halo,
+.star:focus-visible .halo {
+  opacity: 1;
+}
+.star:focus-visible .ring,
+.star.on .ring {
+  stroke: var(--gold);
+  stroke-width: 0.18;
+  fill: none;
+  opacity: 1;
+}
+.star.newest .core {
+  fill: var(--gold);
+}
+.star.born .halo {
+  animation: flare 1100ms ease-out;
+}
+@keyframes flare {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(2.4);
+  }
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+}
+.star.hidden,
+.con-line.hidden,
+.skill.hidden {
+  display: none;
+}
+.skill {
+  fill: #d8dcf0;
+}
+.twinkle {
+  animation: twinkle 3.2s ease-in-out infinite;
+}
+@keyframes twinkle {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* Controls */
+.controls {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+}
+.play,
+.ghost {
+  height: 44px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 15px;
+}
+.play {
+  color: var(--sky);
+  background: var(--gold);
+  border: 0;
+}
+.play:hover {
+  filter: brightness(1.08);
+}
+.ghost {
+  color: var(--star);
+  background: transparent;
+  border: 1px solid var(--line);
+}
+.ghost:hover {
+  border-color: var(--dim);
+}
+.ghost[aria-pressed='false'] {
+  color: var(--dim);
+}
+.play:focus-visible,
+.ghost:focus-visible,
+.link:focus-visible,
+.scrub:focus-visible,
+.row:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 3px;
+}
+.hist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.bars {
+  display: grid;
+  grid-template-columns: repeat(30, minmax(0, 1fr));
+  gap: 3px;
+  align-items: end;
+  height: 46px;
+}
+.bar {
+  background: #36406c;
+  min-height: 2px;
+}
+.bar.lit {
+  background: var(--star);
+}
+.bar.today {
+  background: var(--gold);
+}
+.scrub {
+  width: 100%;
+  accent-color: var(--gold);
+  margin: 0;
+}
+.ticks {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--dim);
+}
+.night {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--dim);
+}
+.night b {
+  color: var(--star);
+  font-weight: 500;
+}
+.tally {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.tally b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 40px;
+  line-height: 1;
+  font-weight: 600;
+}
+.tally span {
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* Card, badges, catalogue */
+.lower {
+  display: grid;
+  grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.card {
+  border: 1px solid var(--line);
+  background: var(--sky-2);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: sticky;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+}
+.card .desig {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--gold);
+}
+.card h3 {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 19px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.card .meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--dim);
+  letter-spacing: 0.04em;
+}
+.card p {
+  margin: 0;
+  color: #d4d8ea;
+  font-size: 15px;
+}
+.card .links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 14px;
+}
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  min-width: 0;
+}
+.side h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 28px;
+  margin: 0 0 4px;
+}
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.link {
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  color: var(--dim);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.link:hover {
+  color: var(--star);
+}
+.note {
+  color: var(--dim);
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+.badges {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: 8px;
+}
+.badge {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 2px 12px;
+  align-items: start;
+  padding: 12px 14px;
+  border: 1px solid var(--rule);
+  background: #10152b;
+}
+.badge svg {
+  grid-row: span 2;
+  margin-top: 2px;
+}
+.badge path {
+  fill: none;
+  stroke: var(--faint);
+  stroke-width: 1.2;
+}
+.badge b {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dim);
+}
+.badge span {
+  font-size: 12.5px;
+  color: var(--faint);
+  line-height: 1.4;
+}
+.badge.got {
+  border-color: #4d4325;
+  background: #17182c;
+}
+.badge.got path {
+  fill: var(--gold);
+  stroke: var(--gold);
+}
+.badge.got b {
+  color: var(--star);
+}
+.badge.got span {
+  color: var(--dim);
+}
+.table {
+  position: relative;
+  overflow-x: auto;
+  border-top: 1px solid var(--line);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 36rem;
+}
+th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+}
+td {
+  padding: 8px;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+td.mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+td.bayer {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 17px;
+  white-space: nowrap;
+}
+td.mark {
+  color: var(--gold);
+  text-align: center;
+  width: 2rem;
+}
+td .sub {
+  color: var(--dim);
+}
+.row {
+  cursor: pointer;
+}
+.row:hover td,
+.row.on td {
+  background: #182044;
+}
+.row.on td.bayer {
+  color: var(--gold);
+}
+.row.unborn td {
+  opacity: 0.35;
+}
+footer {
+  color: var(--dim);
+  font-size: 13px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+footer p {
+  margin: 0 0 6px;
+}
+
+/* Badge toast */
+.toast {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  max-width: min(22rem, calc(100vw - 32px));
+  padding: 14px 18px;
+  background: var(--sky-2);
+  border: 1px solid var(--gold);
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.45);
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 250ms,
+    transform 250ms;
+  pointer-events: none;
+}
+.toast.show {
+  opacity: 1;
+  transform: none;
+}
+.toast small {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.toast b {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .controls {
+    grid-template-columns: auto auto minmax(0, 1fr);
+  }
+  .hist {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .lower {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .card {
+    position: static;
+  }
+  .con-sub {
+    display: none;
+  }
+  .hud {
+    width: 100%;
+  }
+  .meter {
+    flex: 1;
+  }
+}
+@media (max-width: 420px) {
+  .play,
+  .ghost {
+    padding: 0 14px;
+  }
+  #soundLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .star.born .halo,
+  .twinkle {
+    animation: none;
+  }
+  .con-line.drawing {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .track i,
+  .toast {
+    transition: none;
+  }
+}

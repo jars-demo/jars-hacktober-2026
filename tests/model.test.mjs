@@ -1,0 +1,74 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { test } from 'node:test'
+import { REPOS, SNAPSHOT } from '../public/assets/data.js'
+import { CONSTELLATIONS, DAYS, SHAPE, achievementList, chart, dateText, earnedIds } from '../public/assets/model.js'
+
+const sky = chart(REPOS)
+
+test('the data has 32 distinct repositories, each in a known constellation', () => {
+  assert.equal(REPOS.length, 32)
+  assert.equal(new Set(REPOS.map((r) => r.n)).size, 32)
+  for (const r of REPOS) {
+    assert.ok(CONSTELLATIONS[r.k], `${r.n} has an unknown constellation ${r.k}`)
+    assert.ok(r.d.length > 20, `${r.n} needs a description`)
+    assert.ok(!r.h || r.h.startsWith('https://'), `${r.n} homepage must be https`)
+  }
+  assert.equal(SNAPSHOT, '2026-10-29')
+})
+
+test('every star is born inside the thirty nights', () => {
+  for (const s of sky.stars) assert.ok(s.day >= 0 && s.day < DAYS, `${s.n} on day ${s.day}`)
+  assert.equal(dateText(0), '30 Sep')
+  assert.equal(dateText(DAYS - 1), '29 Oct')
+  assert.equal(
+    sky.perDay.reduce((a, b) => a + b, 0),
+    32,
+  )
+})
+
+test('every constellation fits its shape, and no two stars overlap', () => {
+  for (const list of Object.values(sky.groups)) assert.ok(list.length <= SHAPE.length)
+  for (const a of sky.stars) {
+    assert.ok(a.x > 2 && a.x < 98 && a.y > 4 && a.y < 50, `${a.n} is off the plate`)
+    for (const b of sky.stars) if (a !== b) assert.ok(Math.hypot(a.x - b.x, a.y - b.y) > 3, `${a.n} and ${b.n}`)
+  }
+})
+
+test('designations are unique and follow birth order', () => {
+  assert.equal(new Set(sky.stars.map((s) => s.bayer)).size, 32)
+  for (const list of Object.values(sky.groups)) {
+    assert.ok(list[0].bayer.startsWith('α'))
+    for (let i = 1; i < list.length; i++) assert.ok(list[i - 1].c <= list[i].c)
+  }
+})
+
+test('every note is in A minor pentatonic, within a comfortable range', () => {
+  const scale = new Set([0, 3, 5, 7, 10])
+  for (const s of sky.stars) {
+    assert.ok(s.note >= 57 && s.note <= 84, `${s.n} note ${s.note}`)
+    assert.ok(scale.has((s.note - 57) % 12))
+  }
+})
+
+test('badges: none at the start, all twelve when everything is done', () => {
+  const list = achievementList(sky.groups, 32)
+  assert.equal(list.length, 12)
+  assert.equal(new Set(list.map((a) => a.id)).size, 12)
+  assert.deepEqual(earnedIds({ charted: new Set(), month: false, peak: false }, sky.groups), [])
+  const everything = { charted: new Set(REPOS.map((r) => r.n)), month: true, peak: true }
+  assert.deepEqual(new Set(earnedIds(everything, sky.groups)), new Set(list.map((a) => a.id)))
+})
+
+test('opening one constellation earns its badge, and only that one', () => {
+  const tabula = new Set(sky.groups.data.map((s) => s.n))
+  const ids = earnedIds({ charted: tabula, month: false, peak: false }, sky.groups)
+  assert.deepEqual(ids, ['first', 'con-data'])
+})
+
+test('the page states the same numbers as the data', () => {
+  const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8')
+  assert.match(html, /Thirty-two stars in <em>thirty nights<\/em>/)
+  assert.match(html, /32 public repositories/)
+  assert.match(html, /each of the 63 skills/)
+})
