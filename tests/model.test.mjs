@@ -23,6 +23,7 @@ test('the data has 32 distinct repositories, each in a known constellation', () 
     assert.ok(CONSTELLATIONS[r.k], `${r.n} has an unknown constellation ${r.k}`)
     assert.ok(r.d.length > 20, `${r.n} needs a description`)
     assert.ok(!r.h || r.h.startsWith('https://'), `${r.n} homepage must be https`)
+    assert.ok(!r.v || r.v.startsWith('https://'), `${r.n} demo video must be https`)
   }
   assert.equal(SNAPSHOT, '2026-10-29')
 })

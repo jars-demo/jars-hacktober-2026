@@ -256,6 +256,7 @@ export const REPOS = [
     c: '2026-10-29',
     k: 'found',
     h: 'https://licensing.jishanahmed.in',
+    v: 'https://youtu.be/_5gdb-rNVYY',
     l: 'TypeScript',
     d: 'Whose code is it anyway? A hands-on open source licensing workshop: eight real licensing mistakes in one small project. Choosing a licence, SPDX, keeping notices, Apache NOTICE files, fonts and logos, copyleft dependencies and the AGPL.',
   },

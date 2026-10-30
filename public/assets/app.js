@@ -160,7 +160,8 @@ for (const s of stars) {
   const site = s.h
     ? `<a href="${s.h}" target="_blank" rel="noopener">${s.h.includes('youtu') ? 'Demo' : 'Site'} ↗</a>`
     : ''
-  tr.innerHTML = `<td class="date">${dateText(s.day)}</td><td class="project"><b>${s.n}</b><span></span></td><td><span class="topic"><i></i><span></span></span></td><td class="lang"></td><td class="links"><a href="${repo}" target="_blank" rel="noopener">Repo ↗</a>${site}</td><td class="mark"></td>`
+  const demo = s.v ? `<a href="${s.v}" target="_blank" rel="noopener">Demo ↗</a>` : ''
+  tr.innerHTML = `<td class="date">${dateText(s.day)}</td><td class="project"><b>${s.n}</b><span></span></td><td><span class="topic"><i></i><span></span></span></td><td class="lang"></td><td class="links"><a href="${repo}" target="_blank" rel="noopener">Repo ↗</a>${site}${demo}</td><td class="mark"></td>`
   tr.querySelector('.project span').textContent = s.d
   tr.querySelector('.topic i').style.background = s.con.color
   tr.querySelector('.topic span').textContent = s.con.label
@@ -273,8 +274,9 @@ function renderDetail(s) {
   const site = s.h
     ? `<a class="btn" href="${s.h}" target="_blank" rel="noopener">${s.h.includes('youtu') ? 'Watch the demo' : 'Live site'} ↗</a>`
     : ''
+  const demo = s.v ? `<a class="btn" href="${s.v}" target="_blank" rel="noopener">Watch the demo ↗</a>` : ''
   const newest = s.day === newestDay ? '<span class="badge-new">Newest</span>' : ''
-  detail.innerHTML = `<span class="tag"><i></i><span></span></span><h3></h3><p></p><dl><dt>Created</dt><dd>${dateText(s.day)} 2026${newest}</dd><dt>Language</dt><dd class="lang"></dd><dt>Star</dt><dd class="bayer">${s.bayer}</dd></dl><div class="actions">${repo}${site}</div>`
+  detail.innerHTML = `<span class="tag"><i></i><span></span></span><h3></h3><p></p><dl><dt>Created</dt><dd>${dateText(s.day)} 2026${newest}</dd><dt>Language</dt><dd class="lang"></dd><dt>Star</dt><dd class="bayer">${s.bayer}</dd></dl><div class="actions">${repo}${site}${demo}</div>`
   detail.querySelector('.tag i').style.background = s.con.color
   detail.querySelector('.tag span').textContent = s.con.label
   detail.querySelector('h3').textContent = s.n
