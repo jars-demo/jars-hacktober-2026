@@ -274,6 +274,26 @@
             <input id="search" type="search" placeholder="Search projects" autocomplete="off" />
           </label>
         </div>
+        <div class="filters">
+          <label class="field">
+            <span>Topic</span>
+            <select id="fTopic"><option value="">All topics</option></select>
+          </label>
+          <label class="field">
+            <span>Language</span>
+            <select id="fLang"><option value="">All languages</option></select>
+          </label>
+          <label class="field">
+            <span>Links</span>
+            <select id="fKind">
+              <option value="">Any</option>
+              <option value="site">Live site</option>
+              <option value="video">Demo video</option>
+              <option value="repo">Repository only</option>
+            </select>
+          </label>
+          <button class="link" id="fClear" type="button" hidden>Clear filters</button>
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -289,7 +309,15 @@
             <tbody id="rows"></tbody>
           </table>
         </div>
-        <p class="empty" id="empty" hidden>No projects match your search.</p>
+        <p class="empty" id="empty" hidden>No projects match these filters.</p>
+        <nav class="pager" id="pager" aria-label="Project pages">
+          <p class="muted" id="pageInfo" aria-live="polite"></p>
+          <div class="pages">
+            <button class="page-step" id="prev" type="button">← Previous</button>
+            <span class="page-nums" id="pageNums"></span>
+            <button class="page-step" id="next" type="button">Next →</button>
+          </div>
+        </nav>
       </section>
     </main>
 

@@ -120,3 +120,28 @@ export function earnedIds(progress, groups) {
   if (lists.every(([, list]) => list.every((s) => charted.has(s.n)))) ids.push('all')
   return ids
 }
+
+// A project's live site and demo video. A YouTube homepage counts as the video.
+export function links(s) {
+  const tube = Boolean(s.h && s.h.includes('youtu'))
+  return { site: tube ? '' : s.h || '', video: s.v || (tube ? s.h : '') }
+}
+
+// The table's filters. An empty value means any; `kind` is 'site', 'video' or 'repo' (neither).
+export function matches(s, { q = '', topic = '', lang = '', kind = '' } = {}) {
+  const { site, video } = links(s)
+  if (topic && s.k !== topic) return false
+  if (lang && s.l !== lang) return false
+  if (kind === 'site' && !site) return false
+  if (kind === 'video' && !video) return false
+  if (kind === 'repo' && (site || video)) return false
+  return !q || `${s.n} ${s.d} ${s.con.label} ${s.l}`.toLowerCase().includes(q)
+}
+
+export const PAGE_SIZE = 10
+// Which rows page `page` holds out of `n`, with the page kept in range.
+export function paginate(n, page, size = PAGE_SIZE) {
+  const pages = Math.max(1, Math.ceil(n / size))
+  const at = Math.min(Math.max(1, page), pages)
+  return { page: at, pages, from: (at - 1) * size, to: Math.min(n, at * size) }
+}

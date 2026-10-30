@@ -9,6 +9,9 @@ import {
   clock,
   dateText,
   earnedIds,
+  links,
+  matches,
+  paginate,
   runtime,
 } from './model.js'
 import * as sound from './audio.js'
@@ -157,10 +160,9 @@ for (const s of stars) {
   tr.className = 'row'
   tr.tabIndex = 0
   const repo = `https://github.com/jars-demo/${s.n}`
-  const site = s.h
-    ? `<a href="${s.h}" target="_blank" rel="noopener">${s.h.includes('youtu') ? 'Demo' : 'Site'} ↗</a>`
-    : ''
-  const demo = s.v ? `<a href="${s.v}" target="_blank" rel="noopener">Demo ↗</a>` : ''
+  const { site: siteUrl, video } = links(s)
+  const site = siteUrl ? `<a href="${siteUrl}" target="_blank" rel="noopener">Site ↗</a>` : ''
+  const demo = video ? `<a href="${video}" target="_blank" rel="noopener">Demo ↗</a>` : ''
   tr.innerHTML = `<td class="date">${dateText(s.day)}</td><td class="project"><b>${s.n}</b><span></span></td><td><span class="topic"><i></i><span></span></span></td><td class="lang"></td><td class="links"><a href="${repo}" target="_blank" rel="noopener">Repo ↗</a>${site}${demo}</td><td class="mark"></td>`
   tr.querySelector('.project span').textContent = s.d
   tr.querySelector('.topic i').style.background = s.con.color
@@ -196,24 +198,89 @@ const chips = [null, ...TOPICS].map((key) => {
 function setFilter(key) {
   filter = key
   for (const c of chips) c.chip.setAttribute('aria-pressed', String(c.key === key))
+  $('fTopic').value = key || ''
+  page = 1
   applyView()
 }
+
+// Table filters: the topic select mirrors the chips; language and links filter the table only.
+const option = (select, value, label) => select.append(new Option(label, value))
+for (const k of TOPICS) option($('fTopic'), k, `${CONSTELLATIONS[k].label} (${groups[k].length})`)
+const langCount = {}
+for (const s of stars) langCount[s.l] = (langCount[s.l] || 0) + 1
+for (const l of Object.keys(langCount).sort()) option($('fLang'), l, `${l} (${langCount[l]})`)
+$('fTopic').addEventListener('change', (e) => setFilter(e.target.value || null))
+for (const id of ['fLang', 'fKind']) {
+  $(id).addEventListener('change', () => {
+    page = 1
+    applyView()
+  })
+}
+$('fClear').addEventListener('click', () => {
+  $('search').value = ''
+  $('fLang').value = ''
+  $('fKind').value = ''
+  setFilter(null)
+})
+
+// Pagination: ten rows a page.
+let page = 1
+function showPage(n) {
+  page = n
+  applyView()
+  if ($('projects').getBoundingClientRect().top < 0) {
+    $('projects').scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' })
+  }
+}
+$('prev').addEventListener('click', () => showPage(page - 1))
+$('next').addEventListener('click', () => showPage(page + 1))
+
 function applyView() {
-  const q = $('search').value.trim().toLowerCase()
-  let shown = 0
+  const view = {
+    q: $('search').value.trim().toLowerCase(),
+    topic: filter || '',
+    lang: $('fLang').value,
+    kind: $('fKind').value,
+  }
   for (const s of stars) {
     const inTopic = !filter || s.k === filter
     s.g.classList.toggle('dim', !inTopic)
     if (s.line) s.line.classList.toggle('dim', !inTopic)
-    const match = inTopic && (!q || `${s.n} ${s.d} ${s.con.label} ${s.l}`.toLowerCase().includes(q))
-    s.tr.hidden = !match
-    if (match) shown++
   }
+  const shown = stars.filter((s) => matches(s, view))
+  const at = paginate(shown.length, page)
+  page = at.page
+  const onPage = new Set(shown.slice(at.from, at.to))
+  for (const s of stars) s.tr.hidden = !onPage.has(s)
   for (const k of TOPICS) conLabels[k].classList.toggle('dim', Boolean(filter) && filter !== k)
   $('cluster').classList.toggle('dim', Boolean(filter) && filter !== 'skills')
-  $('empty').hidden = shown > 0
+  $('empty').hidden = shown.length > 0
+  $('fClear').hidden = !(view.q || view.topic || view.lang || view.kind)
+  renderPager(at, shown.length)
 }
-$('search').addEventListener('input', applyView)
+function renderPager(at, n) {
+  $('pager').hidden = n === 0
+  const of = n === stars.length ? `${n} projects` : `${n} matching projects`
+  $('pageInfo').textContent = `${at.from + 1}–${at.to} of ${of}`
+  $('prev').disabled = at.page === 1
+  $('next').disabled = at.page === at.pages
+  const nums = $('pageNums')
+  nums.replaceChildren()
+  for (let i = 1; i <= at.pages; i++) {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.className = 'page-num'
+    b.textContent = i
+    b.setAttribute('aria-label', `Page ${i}`)
+    if (i === at.page) b.setAttribute('aria-current', 'page')
+    b.addEventListener('click', () => showPage(i))
+    nums.appendChild(b)
+  }
+}
+$('search').addEventListener('input', () => {
+  page = 1
+  applyView()
+})
 
 // Badges.
 const badgeEls = ACHIEVEMENTS.map((a) => {
@@ -271,10 +338,9 @@ const detail = $('detail')
 let selected = null
 function renderDetail(s) {
   const repo = `<a class="btn primary" href="https://github.com/jars-demo/${s.n}" target="_blank" rel="noopener">Repository ↗</a>`
-  const site = s.h
-    ? `<a class="btn" href="${s.h}" target="_blank" rel="noopener">${s.h.includes('youtu') ? 'Watch the demo' : 'Live site'} ↗</a>`
-    : ''
-  const demo = s.v ? `<a class="btn" href="${s.v}" target="_blank" rel="noopener">Watch the demo ↗</a>` : ''
+  const { site: siteUrl, video } = links(s)
+  const site = siteUrl ? `<a class="btn" href="${siteUrl}" target="_blank" rel="noopener">Live site ↗</a>` : ''
+  const demo = video ? `<a class="btn" href="${video}" target="_blank" rel="noopener">Watch the demo ↗</a>` : ''
   const newest = s.day === newestDay ? '<span class="badge-new">Newest</span>' : ''
   detail.innerHTML = `<span class="tag"><i></i><span></span></span><h3></h3><p></p><dl><dt>Created</dt><dd>${dateText(s.day)} 2026${newest}</dd><dt>Language</dt><dd class="lang"></dd><dt>Star</dt><dd class="bayer">${s.bayer}</dd></dl><div class="actions">${repo}${site}${demo}</div>`
   detail.querySelector('.tag i').style.background = s.con.color

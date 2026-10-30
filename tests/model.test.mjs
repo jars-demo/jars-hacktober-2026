@@ -11,6 +11,9 @@ import {
   clock,
   dateText,
   earnedIds,
+  links,
+  matches,
+  paginate,
   runtime,
 } from '../public/assets/model.js'
 
@@ -105,4 +108,31 @@ test('the played month runs between one and two minutes', () => {
   assert.ok(ms >= 60000 && ms <= 120000, `runtime ${ms} ms`)
   assert.equal(clock(ms), '1:23')
   assert.equal(clock(59600), '1:00')
+})
+
+test('links split live sites from demo videos', () => {
+  const by = Object.fromEntries(sky.stars.map((s) => [s.n, s]))
+  assert.deepEqual(links(by['licensing-demo']), {
+    site: 'https://licensing.jishanahmed.in',
+    video: 'https://youtu.be/_5gdb-rNVYY',
+  })
+  assert.deepEqual(links(by['cognee-data-lab']), { site: '', video: 'https://youtu.be/9-4LVBFVDww' })
+})
+
+test('the table filters combine topic, language, links and search', () => {
+  const count = (view) => sky.stars.filter((s) => matches(s, view)).length
+  assert.equal(count({}), 32)
+  const langs = [...new Set(sky.stars.map((s) => s.l))]
+  assert.equal(langs.reduce((n, lang) => n + count({ lang }), 0), 32)
+  assert.equal(count({ kind: 'repo' }), sky.stars.filter((s) => !s.h && !s.v).length)
+  assert.ok(sky.stars.filter((s) => matches(s, { kind: 'video' })).some((s) => s.n === 'licensing-demo'))
+  assert.equal(count({ topic: 'found', q: 'licensing' }), 1)
+  assert.equal(count({ topic: 'found', lang: 'Rust' }), 0)
+})
+
+test('pages hold ten rows and stay in range', () => {
+  assert.deepEqual(paginate(32, 1), { page: 1, pages: 4, from: 0, to: 10 })
+  assert.deepEqual(paginate(32, 4), { page: 4, pages: 4, from: 30, to: 32 })
+  assert.deepEqual(paginate(32, 9), { page: 4, pages: 4, from: 30, to: 32 })
+  assert.deepEqual(paginate(0, 3), { page: 1, pages: 1, from: 0, to: 0 })
 })
