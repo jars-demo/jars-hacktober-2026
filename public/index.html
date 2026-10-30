@@ -338,6 +338,38 @@
     </footer>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <aside class="jars" id="jars" aria-label="JARS, your companion" hidden>
+      <button class="jars-btn" type="button" aria-label="Ask JARS for a tip">
+        <svg width="48" height="56" viewBox="0 0 48 56" aria-hidden="true">
+          <defs>
+            <clipPath id="jarsClip">
+              <path d="M13 15h22q5 0 5 5v24q0 8-8 8H16q-8 0-8-8V20q0-5 5-5z" />
+            </clipPath>
+          </defs>
+          <path class="jars-glass" d="M13 15h22q5 0 5 5v24q0 8-8 8H16q-8 0-8-8V20q0-5 5-5z" />
+          <rect class="jars-level" x="8" y="50" width="32" height="0" clip-path="url(#jarsClip)" />
+          <path class="jars-star" d="M15 44l1 2.2 2.2 1-2.2 1L15 50.4l-1-2.2-2.2-1 2.2-1z" />
+          <path class="jars-star" d="M33 40l.8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8z" />
+          <path class="jars-star" d="M26 46l.6 1.3 1.3.6-1.3.6-.6 1.3-.6-1.3-1.3-.6 1.3-.6z" />
+          <rect class="jars-lid" x="10" y="6" width="28" height="9" rx="3" />
+          <circle class="jars-eye" cx="19" cy="29" r="2.2" />
+          <circle class="jars-eye" cx="29" cy="29" r="2.2" />
+          <path class="jars-smile" d="M20 34q4 3.5 8 0" />
+        </svg>
+      </button>
+      <div class="jars-say" role="status" aria-live="polite" hidden>
+        <b>JARS</b>
+        <p></p>
+        <button class="jars-hush" type="button" aria-label="Close">×</button>
+      </div>
+    </aside>
+
+    <button class="to-top" id="toTop" type="button" aria-label="Back to top" hidden>
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M8 13V3M3.5 7.5L8 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </button>
     <noscript
       ><p class="wrap">This chart needs JavaScript. Every project is listed at github.com/jars-demo.</p></noscript
     >

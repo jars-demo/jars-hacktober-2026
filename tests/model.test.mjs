@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { REPOS, SNAPSHOT } from '../public/assets/data.js'
+import { TIPS, jarsLine } from '../public/assets/companion.js'
 import {
   CONSTELLATIONS,
   DAYS,
@@ -135,4 +136,13 @@ test('pages hold ten rows and stay in range', () => {
   assert.deepEqual(paginate(32, 4), { page: 4, pages: 4, from: 30, to: 32 })
   assert.deepEqual(paginate(32, 9), { page: 4, pages: 4, from: 30, to: 32 })
   assert.deepEqual(paginate(0, 3), { page: 1, pages: 1, from: 0, to: 0 })
+})
+
+test('JARS greets, counts down and cycles tips', () => {
+  assert.match(jarsLine('hello', { charted: 0, total: 32 }), /I'm JARS/)
+  assert.equal(jarsLine('hello', { charted: 5, total: 32 }), 'Welcome back. 5 of 32 charted, 27 to go.')
+  assert.equal(jarsLine('chart', { charted: 2, total: 32, name: 'git-demo', bayer: 'β Fundamentorum' }), 'git-demo is β Fundamentorum. 30 to go.')
+  assert.match(jarsLine('chart', { charted: 32, total: 32 }), /whole month/)
+  assert.equal(jarsLine('tip', { i: TIPS.length }), TIPS[0])
+  assert.equal(jarsLine('nope'), '')
 })

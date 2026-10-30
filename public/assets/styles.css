@@ -969,7 +969,7 @@ td.mark {
 .toast {
   position: fixed;
   right: var(--gutter-r);
-  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  bottom: calc(max(16px, env(safe-area-inset-bottom, 0px)) + 52px);
   z-index: 60;
   display: flex;
   align-items: center;
@@ -986,6 +986,141 @@ td.mark {
     opacity 250ms,
     transform 250ms;
   pointer-events: none;
+}
+/* JARS, the companion, and the back-to-top button */
+.jars {
+  position: fixed;
+  left: var(--gutter);
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.jars-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  filter: drop-shadow(0 8px 20px rgb(0 0 0 / 0.5));
+  animation: jars-bob 4s ease-in-out infinite;
+}
+.jars-btn:hover {
+  transform: translateY(-2px);
+}
+.jars.cheer .jars-btn {
+  animation: jars-cheer 700ms ease-out;
+}
+.jars-glass {
+  fill: rgb(138 180 255 / 0.12);
+  stroke: #8ab4ff;
+  stroke-width: 1.5;
+}
+.jars-level {
+  fill: rgb(242 181 68 / 0.3);
+  transition:
+    y 600ms ease-out,
+    height 600ms ease-out;
+}
+.jars-star,
+.jars-lid {
+  fill: var(--accent);
+}
+.jars-eye {
+  fill: var(--text);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: jars-blink 5s infinite;
+}
+.jars-smile {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+.jars-say {
+  position: relative;
+  max-width: min(18rem, calc(100vw - 96px));
+  margin-bottom: 20px;
+  padding: 10px 30px 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius) var(--radius) var(--radius) 4px;
+  background: var(--surface-2);
+  box-shadow: 0 16px 48px rgb(0 0 0 / 0.5);
+  font-size: 13px;
+}
+.jars-say b {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+}
+.jars-say p {
+  margin: 2px 0 0;
+  color: var(--text);
+  line-height: 1.45;
+}
+.jars-hush {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  background: none;
+  color: var(--faint);
+  font-size: 16px;
+  cursor: pointer;
+}
+.jars-hush:hover {
+  color: var(--text);
+}
+.to-top {
+  position: fixed;
+  right: var(--gutter-r);
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--muted);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.4);
+  cursor: pointer;
+}
+.to-top:hover {
+  color: var(--text);
+  border-color: #4a5570;
+}
+.in-theater .jars,
+.in-theater .to-top {
+  display: none;
+}
+@keyframes jars-bob {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes jars-cheer {
+  30% {
+    transform: translateY(-10px) rotate(-6deg);
+  }
+  60% {
+    transform: translateY(-4px) rotate(5deg);
+  }
+}
+@keyframes jars-blink {
+  0%,
+  94%,
+  100% {
+    transform: scaleY(1);
+  }
+  97% {
+    transform: scaleY(0.1);
+  }
 }
 .toast.show {
   opacity: 1;
@@ -1455,6 +1590,12 @@ td.mark {
     animation: none;
     stroke-dashoffset: 0;
   }
+  .jars-btn,
+  .jars.cheer .jars-btn,
+  .jars-eye {
+    animation: none;
+  }
+  .jars-level,
   .track i,
   .toast,
   .panel.theater .th-caption {

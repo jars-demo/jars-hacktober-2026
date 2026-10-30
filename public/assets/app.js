@@ -15,6 +15,7 @@ import {
   runtime,
 } from './model.js'
 import * as sound from './audio.js'
+import { jarsLine, mountJars } from './companion.js'
 
 const { stars, groups, perDay, peak, newestDay } = chart(REPOS)
 const ACHIEVEMENTS = achievementList(groups, stars.length)
@@ -54,6 +55,10 @@ const saved = load()
 const progress = { charted: new Set(saved.charted || []), month: Boolean(saved.month), peak: Boolean(saved.peak) }
 let soundOn = saved.sound !== false
 const unlocked = new Set(earnedIds(progress, groups))
+const jars = mountJars()
+const tally = () => ({ charted: progress.charted.size, total: stars.length })
+jars.fill(progress.charted.size / stars.length)
+setTimeout(() => jars.say(jarsLine('hello', tally())), 1200)
 function save() {
   try {
     localStorage.setItem(KEY, JSON.stringify({ ...progress, charted: [...progress.charted], sound: soundOn }))
@@ -254,6 +259,7 @@ function applyView() {
   for (const s of stars) s.tr.hidden = !onPage.has(s)
   for (const k of TOPICS) conLabels[k].classList.toggle('dim', Boolean(filter) && filter !== k)
   $('cluster').classList.toggle('dim', Boolean(filter) && filter !== 'skills')
+  if (!shown.length && $('empty').hidden) jars.say(jarsLine('empty'))
   $('empty').hidden = shown.length > 0
   $('fClear').hidden = !(view.q || view.topic || view.lang || view.kind)
   renderPager(at, shown.length)
@@ -322,6 +328,8 @@ function celebrate(a) {
   toast.querySelector('b').textContent = a.name
   toast.classList.add('show')
   sound.fanfare()
+  jars.cheer()
+  jars.say(jarsLine('badge', { name: a.name }))
   clearTimeout(toastTimer)
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2800)
 }
@@ -366,6 +374,8 @@ function open(s, byUser) {
     sound.chime(s.note)
     if (!progress.charted.has(s.n)) {
       progress.charted.add(s.n)
+      jars.fill(progress.charted.size / stars.length)
+      jars.say(jarsLine('chart', { ...tally(), name: s.n, bayer: s.bayer }))
       advance()
     }
   }
@@ -676,6 +686,7 @@ function onKey(e) {
 function enterTheater() {
   if (panel.classList.contains('theater')) return
   panel.classList.add('theater')
+  document.body.classList.add('in-theater')
   panel.setAttribute('role', 'dialog')
   panel.setAttribute('aria-modal', 'true')
   outside().forEach((n) => (n.inert = true))
@@ -692,6 +703,7 @@ function exitTheater() {
   cancelAnimationFrame(camFrame)
   setView(FULL)
   panel.classList.remove('theater')
+  document.body.classList.remove('in-theater')
   panel.removeAttribute('role')
   panel.removeAttribute('aria-modal')
   outside().forEach((n) => (n.inert = false))
@@ -911,3 +923,18 @@ render()
 renderSound()
 setPlayButton()
 setTimeout(() => meteor([96, 3], [70, 13]), 1800)
+
+// Back to top, once the page has scrolled past the first screen.
+let topFrame = 0
+addEventListener(
+  'scroll',
+  () => {
+    cancelAnimationFrame(topFrame)
+    topFrame = requestAnimationFrame(() => ($('toTop').hidden = scrollY < innerHeight))
+  },
+  { passive: true },
+)
+$('toTop').addEventListener('click', () => {
+  scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' })
+  $('play').focus({ preventScroll: true })
+})
