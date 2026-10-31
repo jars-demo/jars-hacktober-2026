@@ -49,7 +49,8 @@ test('the project filter matches topic and text', () => {
   assert.ok(!matches(r, '', 'kubernetes-operator'))
 })
 
-test('the usage card is in place', () => {
+test('the usage cards are in place', () => {
   assert.ok(FLOW.words > 0 && FLOW.wpm > 0)
-  assert.ok(existsSync(new URL(`../public/${FLOW.card}`, import.meta.url)))
+  assert.equal(FLOW.cards.length, 3)
+  for (const c of FLOW.cards) assert.ok(existsSync(new URL(`../public/${c.src}`, import.meta.url)), c.src)
 })

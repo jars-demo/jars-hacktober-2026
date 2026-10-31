@@ -3,6 +3,7 @@
 import { REPOS, TOPICS, VIDEOS } from './data.js'
 import { FLOW, WISPR_DAY } from './flow.js'
 import { DAYS, byDay, dateText, dayIndex, fmt, matches, split, ytId } from './model.js'
+import { GLYPH, initials, playMonth } from './show.js'
 
 const $ = (s) => document.querySelector(s)
 const el = (tag, cls, html) => {
@@ -30,14 +31,84 @@ $('#hero-stats').innerHTML = [
   [num(REPOS.length), 'Projects shipped'],
   [num(VIDEOS.length), 'Videos published'],
   [num(FLOW.words), 'Words dictated'],
-  [num(FLOW.wpm), 'Words per minute'],
+  [num(FLOW.wpm), `Words a minute · top ${FLOW.top}`],
 ]
   .map(([n, l]) => `<div><dd>${n}</dd><dt>${l}</dt></div>`)
   .join('')
-const card = $('#flow-card')
-card.src = FLOW.card
-card.alt = `My Wispr Flow usage card: ${fmt(FLOW.words)} words dictated, ${FLOW.wpm} words per minute, ${FLOW.apps} apps, ${FLOW.streak}-day streak`
-$('#flow-cap').textContent = `My Wispr Flow usage card · ${dateText(FLOW.asOf)}`
+// The usage cards: a stack that tilts in 3D under the pointer. Tap to bring the next card forward.
+const stack = $('#stack')
+stack.innerHTML = FLOW.cards
+  .map((c, i) => `<div class="fc" style="--i:${i}"><img src="${c.src}" alt="My Wispr Flow card: ${esc(c.alt)}" width="1728" height="1170" /><i class="glare"></i></div>`)
+  .join('')
+const cardsEls = () => [...stack.querySelectorAll('.fc')]
+const restack = () => cardsEls().forEach((c, i) => c.style.setProperty('--i', i))
+if (FLOW.cards.length > 1) {
+  stack.classList.add('many')
+  stack.addEventListener('click', () => {
+    stack.append(stack.firstElementChild)
+    restack()
+  })
+}
+stack.addEventListener('pointermove', (e) => {
+  const r = stack.getBoundingClientRect()
+  const x = (e.clientX - r.left) / r.width - 0.5
+  const y = (e.clientY - r.top) / r.height - 0.5
+  stack.style.setProperty('--rx', `${-y * 14}deg`)
+  stack.style.setProperty('--ry', `${x * 18}deg`)
+  stack.style.setProperty('--gx', `${(x + 0.5) * 100}%`)
+  stack.style.setProperty('--gy', `${(y + 0.5) * 100}%`)
+  stack.classList.add('tilt')
+})
+stack.addEventListener('pointerleave', () => {
+  stack.classList.remove('tilt')
+  stack.style.setProperty('--rx', '0deg')
+  stack.style.setProperty('--ry', '0deg')
+})
+$('#flow-cap').textContent = `${FLOW.cards.length > 1 ? 'Tap to flip through my' : 'My'} Wispr Flow usage · ${dateText(FLOW.asOf)}`
+
+// The headline types itself out, then the second line is spoken: whole words, with the voice bars.
+const h1 = $('#hero-h')
+const voice = $('#voice')
+voice.innerHTML = '<i></i>'.repeat(48)
+const bars = [...voice.children]
+let speaking = 0
+const levels = bars.map(() => 0.08)
+const drawVoice = (now) => {
+  bars.forEach((b, i) => {
+    const target = speaking
+      ? 0.25 + 0.75 * Math.abs(Math.sin(now / 140 + i * 0.6) * Math.sin(now / 370 + i * 0.23))
+      : 0.08 + 0.06 * Math.sin(now / 600 + i * 0.4)
+    levels[i] += (target - levels[i]) * 0.25
+    b.style.transform = `scaleY(${levels[i].toFixed(3)})`
+  })
+  requestAnimationFrame(drawVoice)
+}
+if (!reduced) {
+  requestAnimationFrame(drawVoice)
+  const l1 = h1.querySelector('.l1')
+  const l2 = h1.querySelector('.said')
+  l1.innerHTML = [...l1.textContent].map((c) => `<span class="ch">${c === ' ' ? ' ' : esc(c)}</span>`).join('')
+  l2.innerHTML = l2.textContent.split(' ').map((w) => `<span class="wd">${esc(w)}</span>`).join(' ')
+  h1.classList.add('tw')
+  ;(async () => {
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+    await sleep(400)
+    for (const c of l1.querySelectorAll('.ch')) {
+      c.classList.add('on', 'cur')
+      await sleep(c.textContent === ' ' ? 60 : 75)
+      c.classList.remove('cur')
+    }
+    await sleep(500)
+    speaking = 1
+    for (const w of l2.querySelectorAll('.wd')) {
+      w.classList.add('on')
+      await sleep(260)
+    }
+    l2.classList.add('in')
+    await sleep(900)
+    speaking = 0
+  })()
+}
 
 // Before and after: one card, two layers, and a slider that wipes from typing to talking. It sweeps
 // on its own while in view, so it reads as something you can move; a drag or a key takes over.
@@ -217,7 +288,7 @@ function renderProjects() {
       const t = TOPICS[r.k]
       const video = r.v || (ytId(r.h) ? r.h : null)
       const site = r.h && !ytId(r.h) ? r.h : null
-      return `<article class="proj"><div class="meta"><i style="background:${t.color}"></i>${t.label} · ${dateText(r.c)}</div>
+      return `<article class="proj" style="--c:${t.color}"><span class="pip" aria-hidden="true">${initials(r.n)}<i>${GLYPH[r.k]}</i></span><div class="meta">${t.label} · ${dateText(r.c)}</div>
       <h3>${esc(r.n)}</h3><p>${esc(r.d)}</p>${r.c >= WISPR_DAY ? '<span class="wf">Built leveraging WisprFlow</span>' : ''}
       <p class="links">${site ? `<a href="${site}">Live</a>` : ''}<a href="https://github.com/jars-demo/${r.n}">Code</a>${
         video ? `<a href="${video}">Video</a>` : ''
@@ -246,7 +317,7 @@ const countUp = (e) => {
   requestAnimationFrame(step)
 }
 const groups = [
-  ['.hero-text > *, .hero-card, .stats', 0.08],
+  ['.hero-text > *:not(h1), .hero-card, .stats', 0.08],
   ['.head', 0],
   ['.compare, .chart-wrap', 0.1],
   ['.feat, .vid', 0.08],
@@ -269,7 +340,7 @@ const io = new IntersectionObserver(
   },
   { threshold: 0.15 },
 )
-const watched = document.querySelectorAll('.rise, #chart, .hero h1, .end h2')
+const watched = document.querySelectorAll('.rise, #chart, .end h2')
 if (reduced) watched.forEach((e) => e.classList.add('in'))
 else watched.forEach((e) => io.observe(e))
 
@@ -281,154 +352,9 @@ addEventListener('scroll', onScroll, { passive: true })
 onScroll()
 toTop.addEventListener('click', () => scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }))
 
-// The played month: before 16 October every caption is typed out letter by letter; after it, the
-// words arrive whole, the way speech does.
-const show = $('#show')
-const cap = $('#s-cap')
-const cards = $('#s-cards')
-const bars = $('#s-bars')
-$('#s-wave').innerHTML = Array.from({ length: 24 }, (_, i) => `<i style="animation-delay:${-((i * 137) % 1000)}ms"></i>`).join('')
-let run = 0
-let paused = false
-
-const wait = (ms) =>
-  new Promise((resolve, reject) => {
-    const id = run
-    let left = ms
-    let last = performance.now()
-    const tick = (now) => {
-      if (id !== run) return reject(new Error('stopped'))
-      if (!paused) left -= now - last
-      last = now
-      left <= 0 ? resolve() : requestAnimationFrame(tick)
-    }
-    requestAnimationFrame(tick)
-  })
-
-// Typed: one character at a time, with a cursor. Spoken: word by word, quickly.
-const type = async (text, hold = 900) => {
-  cap.classList.add('typing')
-  cap.textContent = ''
-  for (const ch of text) {
-    cap.textContent += ch
-    await wait(ch === ' ' ? 40 : 55)
-  }
-  await wait(hold)
-}
-// *word* is shown in green, !word! in the accent colour.
-const say = async (text, hold = 1200) => {
-  cap.classList.remove('typing')
-  const words = text.split(' ')
-  cap.innerHTML = words
-    .map((w, i) => {
-      const cls = w.startsWith('*') ? 'w g' : w.startsWith('!') ? 'w a' : 'w'
-      return `<span class="${cls}" style="animation-delay:${i * 70}ms">${esc(w.replace(/[*!]/g, ''))}</span>`
-    })
-    .join(' ')
-  await wait(words.length * 70 + hold)
-}
-const addCard = (html, cls = '') => {
-  const all = cards.querySelectorAll('.show-card')
-  if (all.length >= 15) all[0].remove()
-  all.forEach((c) => c.classList.add('old'))
-  cards.append(el('div', `show-card ${cls}`, html))
-}
-const setDay = (i) => {
-  $('#s-date').textContent = dateText(days[i].date)
-  bars.querySelectorAll('i').forEach((x, j) => x.classList.toggle('today', j === i))
-}
-
-async function playMonth() {
-  const id = ++run
-  paused = false
-  $('#s-pause').textContent = 'Pause'
-  show.hidden = false
-  show.classList.remove('talk')
-  $('#s-mode').textContent = 'Typing'
-  document.body.style.overflow = 'hidden'
-  cards.replaceChildren()
-  cap.textContent = ''
-  bars.innerHTML = days.map((_, i) => `<i class="${i >= pivot ? 'after' : ''}"></i>`).join('')
-  const barEls = [...bars.children]
-  let count = 0
-  $('#s-count').textContent = '0'
-  const land = async (i, r, gap) => {
-    count++
-    $('#s-count').textContent = count
-    barEls[i].style.height = `${(days[i].repos.length / max) * 100}%`
-    addCard(`<i style="background:${TOPICS[r.k].color}"></i>${esc(r.n)}`)
-    await wait(gap)
-  }
-
-  try {
-    await type('October is Hacktober.', 700)
-    await type('So I was already shipping...', 500)
-    await type('typing every prompt.', 300)
-    for (let i = 0; i < pivot; i++) {
-      setDay(i)
-      for (const r of days[i].repos) await land(i, r, 520)
-      await wait(260)
-    }
-
-    cards.replaceChildren()
-    show.classList.add('talk')
-    $('#s-mode').textContent = 'Talking · Wispr Flow'
-    setDay(pivot)
-    await say(`${dateText(WISPR_DAY)}. *Wispr *Flow comes in.`, 1600)
-    await say('Now I just *talk.', 400)
-
-    for (let i = pivot; i < DAYS; i++) {
-      setDay(i)
-      for (const r of days[i].repos) await land(i, r, 200)
-      for (const v of VIDEOS.filter((x) => x.c === days[i].date)) {
-        addCard(`▶ ${esc(v.t.length > 46 ? v.t.slice(0, 44) + '…' : v.t)}`, 'video')
-        await wait(480)
-      }
-      await wait(200)
-    }
-
-    cards.replaceChildren()
-    await say(`!${times} faster, by voice.`, 600)
-    const f = el(
-      'div',
-      'finale',
-      [
-        [times, 'faster'],
-        [`${b.projects} → ${a.projects}`, 'projects'],
-        [`${b.videos} → ${a.videos}`, 'videos'],
-        [fmt(FLOW.words), 'words dictated'],
-      ]
-        .map(([v, l], i) => `<div style="--d:${i * 0.18}s"><b>${v}</b><span>${l}</span></div>`)
-        .join(''),
-    )
-    cards.append(f)
-    await wait(3200)
-    await say('October 2026: *done.', 2000)
-    $('#s-pause').textContent = 'Replay'
-  } catch {
-    // Closed or replayed mid-way.
-  }
-}
-
-function closeShow() {
-  run++
-  show.hidden = true
-  document.body.style.overflow = ''
-}
+// Marquee: every project, flowing past.
+const names = [...REPOS].sort((x, y) => x.c.localeCompare(y.c)).map((r) => `<span style="--c:${TOPICS[r.k].color}">${esc(r.n)}</span>`).join('')
+$('#marquee').innerHTML = `<div class="row">${names}${names}</div><div class="row rev">${names}${names}</div>`
 
 $('#play').addEventListener('click', playMonth)
 $('#play-nav').addEventListener('click', playMonth)
-$('#s-close').addEventListener('click', closeShow)
-$('#s-pause').addEventListener('click', (e) => {
-  if (e.target.textContent === 'Replay') return playMonth()
-  paused = !paused
-  e.target.textContent = paused ? 'Play' : 'Pause'
-})
-addEventListener('keydown', (e) => {
-  if (show.hidden) return
-  if (e.key === 'Escape') closeShow()
-  if (e.key === ' ') {
-    e.preventDefault()
-    $('#s-pause').click()
-  }
-})
