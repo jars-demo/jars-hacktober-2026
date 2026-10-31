@@ -1,11 +1,11 @@
 {
   "name": "October 2026 · JARS DEMO",
   "short_name": "JARS October",
-  "description": "Thirty-two JARS DEMO projects in thirty days, as an interactive sky chart.",
+  "description": "October 2026, shipped by voice: every JARS DEMO project and video, and the 3x speed-up after Wispr Flow.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#090c14",
-  "theme_color": "#090c14",
+  "background_color": "#f6f2ea",
+  "theme_color": "#f6f2ea",
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
