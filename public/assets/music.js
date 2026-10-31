@@ -1,17 +1,21 @@
-// Background music: one soft track, quiet, looping. Off until the visitor turns it on or plays the
-// month (browsers only allow sound after a tap), and the choice is remembered.
+// Background music: one soft track, quiet, looping. On by default, unless the visitor turned it off
+// before. Browsers only allow sound after the visitor interacts with the page, so if starting right
+// away is blocked, it starts on the first tap, click or key press anywhere.
 
 const audio = new Audio('assets/audio/bg.mp3')
 audio.loop = true
-audio.preload = 'none'
+audio.preload = 'auto'
 audio.volume = 0
 const VOLUME = 0.28
+const GESTURES = ['pointerdown', 'keydown', 'touchstart']
 let fade = 0
+let wanted = localStorage.getItem('music') !== 'off'
 const listeners = []
 
-export const isOn = () => !audio.paused
+// The toggle shows what the visitor wants, which is playing as soon as the browser allows it.
+export const isOn = () => wanted
 export const onChange = (fn) => listeners.push(fn)
-const changed = () => listeners.forEach((fn) => fn(isOn()))
+const changed = () => listeners.forEach((fn) => fn(wanted))
 
 const ramp = (to, done) => {
   cancelAnimationFrame(fade)
@@ -27,34 +31,53 @@ const ramp = (to, done) => {
   fade = requestAnimationFrame(step)
 }
 
-export async function play() {
+const start = async () => {
+  if (!wanted || !audio.paused) return true
   try {
     await audio.play()
     ramp(VOLUME)
-    localStorage.setItem('music', 'on')
+    return true
   } catch {
-    // Blocked or failed to load: stay silent.
+    return false
   }
+}
+
+// Wait for the first interaction; a tap on the music toggle itself is left to the toggle.
+const onGesture = (e) => {
+  if (e.target.closest && e.target.closest('#music')) return
+  disarm()
+  start()
+}
+const arm = () => GESTURES.forEach((g) => addEventListener(g, onGesture, { capture: true }))
+const disarm = () => GESTURES.forEach((g) => removeEventListener(g, onGesture, { capture: true }))
+
+export async function play() {
+  wanted = true
+  localStorage.setItem('music', 'on')
   changed()
+  disarm()
+  if (!(await start())) arm()
 }
 
 export function stop() {
+  wanted = false
   localStorage.setItem('music', 'off')
-  ramp(0, () => {
-    audio.pause()
-    changed()
-  })
+  disarm()
   changed()
+  ramp(0, () => audio.pause())
 }
 
-export const toggle = () => (isOn() ? stop() : play())
+export const toggle = () => (wanted ? stop() : play())
 
-// Playing the month starts the music, unless the visitor has turned it off before.
+// Playing the month is an interaction too: make sure the music is going, unless it was turned off.
 export const playUnlessMuted = () => {
-  if (localStorage.getItem('music') !== 'off' && !isOn()) play()
+  if (wanted) start()
 }
+
+// On by default: try now, and if the browser says no, start on the first interaction.
+if (wanted) start().then((ok) => ok || arm())
 
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && isOn()) audio.pause()
-  else if (!document.hidden && localStorage.getItem('music') === 'on' && audio.paused && audio.currentTime > 0) audio.play().catch(() => {})
+  if (document.hidden) audio.pause()
+  else if (wanted && audio.currentTime > 0) start()
 })

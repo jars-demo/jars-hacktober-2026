@@ -379,13 +379,14 @@ toTop.addEventListener('click', () => scrollTo({ top: 0, behavior: reduced ? 'au
 const names = [...REPOS].sort((x, y) => x.c.localeCompare(y.c)).map((r) => `<span style="--c:${TOPICS[r.k].color}">${esc(r.n)}</span>`).join('')
 $('#marquee').innerHTML = `<div class="row">${names}${names}</div><div class="row rev">${names}${names}</div>`
 
-// Music: a quiet toggle in the nav; playing the month starts it unless it was turned off.
+// Music: on by default, with a quiet toggle in the nav; the choice is remembered.
 const musicBtn = $('#music')
 const showMusic = (on) => {
   musicBtn.setAttribute('aria-pressed', String(on))
   musicBtn.querySelector('.ml').textContent = on ? 'Music on' : 'Music off'
 }
 music.onChange(showMusic)
+showMusic(music.isOn())
 musicBtn.addEventListener('click', music.toggle)
 const start = () => {
   music.playUnlessMuted()
