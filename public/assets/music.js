@@ -18,8 +18,9 @@ const ramp = (to, done) => {
   const from = audio.volume
   const t0 = performance.now()
   const step = (now) => {
-    const k = Math.min(1, (now - t0) / 1200)
-    audio.volume = from + (to - from) * k
+    // The first frame's timestamp can be a little earlier than t0, so clamp both ends.
+    const k = Math.max(0, Math.min(1, (now - t0) / 1200))
+    audio.volume = Math.max(0, Math.min(1, from + (to - from) * k))
     if (k < 1) fade = requestAnimationFrame(step)
     else if (done) done()
   }

@@ -1,7 +1,7 @@
-// The played month, as a rail: a marker travels along the days of October, every project lights up
-// as a stop above the day it shipped and every video below it. Before 16 October the marker
-// walks; from it, the rail turns green and the marker runs. At the end the camera pulls back to
-// show the whole month.
+// The played month, as date cards: every day that shipped something becomes a card with the date
+// on top, which slides in and lands on a tilted stack, like the Wispr Flow usage cards. Before
+// 16 October the cards come slowly; from it, they come fast and in the green and dark styles. A
+// thin timeline along the bottom keeps the place, and at the end the cards lay out in a row.
 import { REPOS, TOPICS, VIDEOS } from './data.js'
 import { FLOW, WISPR_DAY } from './flow.js'
 import { DAYS, byDay, dateText, dayIndex, fmt, split } from './model.js'
@@ -21,6 +21,12 @@ const days = byDay(REPOS)
 const pivot = dayIndex(WISPR_DAY)
 const sp = split(REPOS, VIDEOS, WISPR_DAY)
 const times = `${Math.round(sp.times)}×`
+const WEEKDAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+// The days worth a card: any day with a project or a video.
+const cardDays = days
+  .map((d, i) => ({ ...d, i, videos: VIDEOS.filter((v) => v.c === d.date) }))
+  .filter((d) => d.repos.length || d.videos.length)
 
 const show = $('#show')
 const stage = $('#s-stage')
@@ -54,23 +60,21 @@ const say = async (text, hold = 1200) => {
   await wait(words.length * 80 + hold)
 }
 
-// Build the rail: one column per day, a tick and a date under each.
-function build() {
-  const w = stage.clientWidth
-  const dayW = w < 700 ? 92 : 132
-  const railW = DAYS * dayW
-  stage.style.setProperty('--dw', `${dayW}px`)
-  stage.innerHTML = `<div class="rail" id="s-rail" style="width:${railW}px">
-    <div class="track"></div><div class="fill" id="s-fill"></div>
-    <div class="pivot" style="left:${pivot * dayW}px"><span>${dateText(WISPR_DAY)} · Wispr Flow</span></div>
-    ${days
-      .map(
-        (d, i) => `<div class="day ${i >= pivot ? 'after' : ''}" style="left:${i * dayW}px">
-        <div class="stops"></div><i class="tick"></i><small>${dateText(d.date)}</small><div class="vids"></div></div>`,
-      )
-      .join('')}
-    <div class="marker" id="s-marker"><b></b></div></div>`
-  return { w, dayW, railW, rail: $('#s-rail'), fill: $('#s-fill'), marker: $('#s-marker'), cols: [...stage.querySelectorAll('.day')] }
+// Card styles, in turn: plain before 16 October; green, dark and mint from it.
+const AFTER = ['green', 'dark', 'mint']
+const cardHTML = (d, n) => {
+  const style = d.i < pivot ? 'plain' : AFTER[n % AFTER.length]
+  const wd = WEEKDAY[new Date(d.date + 'T00:00:00Z').getUTCDay()]
+  const rows = d.repos
+    .map((r) => `<li><span class="b" style="--c:${TOPICS[r.k].color}">${initials(r.n)}</span>${esc(r.n)}</li>`)
+    .join('')
+  const vids = d.videos.map((v) => `<li class="v"><span class="b">▶</span>${esc(v.t)}</li>`).join('')
+  const total = d.repos.length
+  return `<div class="dc ${style}"><header><b>${dateText(d.date)}</b><span>${wd} · ${
+    d.i < pivot ? 'typed' : 'spoken'
+  }</span></header><ul>${rows}${vids}</ul><footer>${
+    total ? `${total} project${total > 1 ? 's' : ''}` : ''
+  }${total && d.videos.length ? ' · ' : ''}${d.videos.length ? `${d.videos.length} video${d.videos.length > 1 ? 's' : ''}` : ''}</footer></div>`
 }
 
 export async function playMonth() {
@@ -82,71 +86,74 @@ export async function playMonth() {
   $('#s-mode').textContent = 'Typing'
   document.body.style.overflow = 'hidden'
   cap.textContent = ''
-  await new Promise(requestAnimationFrame)
-  const R = build()
+  stage.innerHTML = `<div class="deck" id="s-deck"></div>
+    <div class="line" aria-hidden="true"><div class="track"><i id="s-fill"></i><b style="left:${(pivot / DAYS) * 100}%"></b></div>
+    <div class="ends"><span>30 Sep</span><span class="pv" style="left:${(pivot / DAYS) * 100}%">${dateText(WISPR_DAY)} · Wispr Flow</span><span>31 Oct</span></div></div>`
+  const deck = $('#s-deck')
+  const fill = $('#s-fill')
   let count = 0
   $('#s-count').textContent = '0'
 
-  // Move the marker (and the camera with it) to a day.
-  const go = (i, ms) => {
-    const x = i * R.dayW + R.dayW / 2
-    for (const e of [R.marker, R.fill, R.rail]) e.style.transitionDuration = `${ms}ms`
-    R.marker.style.transform = `translateX(${x}px)`
-    R.fill.style.width = `${x}px`
-    R.rail.style.transform = `translateX(${R.w / 2 - x}px)`
-    $('#s-date').textContent = dateText(days[i].date)
+  // Re-seat the stack: the newest card on top, older ones fanned back and fading.
+  const seat = () => {
+    const cards = [...deck.children].reverse()
+    cards.forEach((c, k) => {
+      c.style.setProperty('--k', k)
+      c.classList.toggle('gone', k > 4)
+    })
   }
-  const stop = (i, r) => {
-    const t = TOPICS[r.k]
-    const e = document.createElement('div')
-    e.className = 'stop'
-    e.style.setProperty('--c', t.color)
-    e.innerHTML = `<span>${initials(r.n)}</span>${esc(r.n.replace(/-demo$/, ''))}`
-    R.cols[i].querySelector('.stops').append(e)
-    count++
+  const land = async (d, n, fast) => {
+    const el = document.createElement('div')
+    el.className = 'slot enter'
+    el.innerHTML = cardHTML(d, n)
+    el.style.transitionDuration = fast ? '.55s' : '.9s'
+    deck.append(el)
+    await new Promise(requestAnimationFrame)
+    await new Promise(requestAnimationFrame)
+    el.classList.remove('enter')
+    seat()
+    count += d.repos.length
     $('#s-count').textContent = count
+    $('#s-date').textContent = dateText(d.date)
+    fill.style.width = `${((d.i + 1) / DAYS) * 100}%`
   }
 
   try {
-    go(0, 0)
     await say('October is Hacktober.', 900)
-    await say('I was already shipping, typing every prompt.', 500)
-    for (let i = 0; i < pivot; i++) {
-      go(i, 700)
-      await wait(700)
-      for (const r of days[i].repos) {
-        stop(i, r)
-        await wait(650)
-      }
+    await say('I was already shipping, typing every prompt.', 400)
+    let n = 0
+    for (const d of cardDays.filter((x) => x.i < pivot)) {
+      await land(d, n++, false)
+      await wait(1500)
     }
-    go(pivot, 900)
-    await wait(900)
     show.classList.add('talk')
     $('#s-mode').textContent = 'Talking · Wispr Flow'
-    await say(`${dateText(WISPR_DAY)}. *Wispr *Flow comes in.`, 1200)
+    $('#s-date').textContent = dateText(WISPR_DAY)
+    await say(`${dateText(WISPR_DAY)}. *Wispr *Flow comes in.`, 1100)
     await say('Now I just *talk.', 200)
-    for (let i = pivot; i < DAYS; i++) {
-      go(i, 260)
-      await wait(260)
-      for (const r of days[i].repos) {
-        stop(i, r)
-        await wait(170)
-      }
-      for (const v of VIDEOS.filter((x) => x.c === days[i].date)) {
-        const e = document.createElement('div')
-        e.className = 'vstop'
-        e.innerHTML = `▶ ${esc(v.t.length > 34 ? v.t.slice(0, 32) + '…' : v.t)}`
-        R.cols[i].querySelector('.vids').append(e)
-        await wait(650)
-      }
+    n = 0
+    for (const d of cardDays.filter((x) => x.i >= pivot)) {
+      await land(d, n++, true)
+      await wait(950)
     }
+    fill.style.width = '100%'
 
-    // Pull back to the whole month.
+    // Lay every card out in a row, oldest first.
     show.classList.add('done')
-    const k = Math.min(1, (R.w - 40) / R.railW)
-    R.rail.style.transitionDuration = '1400ms'
-    R.rail.style.transform = `translateX(${(R.w - R.railW * k) / 2}px) scale(${k})`
-    await say(`!${times} faster, by voice.`, 600)
+    const slots = [...deck.children]
+    const w = stage.clientWidth
+    const cw = slots[0].offsetWidth
+    const k = Math.min(0.42, (w - 80) / (cw * ((slots.length - 1) * 0.62 + 1)))
+    const step = cw * k * 0.62
+    const x0 = -((slots.length - 1) * step) / 2
+    slots.forEach((s, i) => {
+      s.classList.remove('gone')
+      s.style.transitionDuration = '1s'
+      s.style.transitionDelay = `${i * 40}ms`
+      s.style.transform = `translate(${x0 + i * step}px, -40px) scale(${k}) rotate(${(i % 2 ? 1 : -1) * 2}deg)`
+      s.style.zIndex = String(i)
+    })
+    await say(`!${times} faster, by voice.`, 700)
     const f = document.createElement('div')
     f.className = 'finale'
     f.innerHTML = [
