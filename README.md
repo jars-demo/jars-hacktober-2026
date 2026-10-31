@@ -14,18 +14,13 @@ I was already shipping in October, because October is Hacktober. Then on 16 Octo
 
 ## What is on the page
 
-- **Same month, two speeds.** The 16 days before Wispr Flow next to the 16 days after it.
+- **My Wispr Flow usage card,** right next to the headline.
+- **Same month, two speeds.** A slider from without Wispr Flow to with it: it sweeps on its own, and you can drag it.
 - **Projects shipped, day by day.** One bar per day with a marker at 16 October. Tap a bar to see what shipped.
-- **The headliners.** [Breakdown](https://wispr.jishanahmed.in), my No Hands challenge entry, and the [$6 billion Binance heist explainer](https://youtu.be/fztHxrgbt3Q).
-- **Videos this October.** Each loads as a thumbnail and only starts the YouTube player when tapped.
+- **The headliners.** [Breakdown](https://wispr.jishanahmed.in), my No Hands challenge entry, and the [$6 billion Binance heist explainer](https://youtu.be/fztHxrgbt3Q), plus the other October videos. Each loads as a thumbnail and only starts the YouTube player when tapped.
 - **How I build now.** The eleven steps from spec sheet to published video, and where Wispr Flow comes in.
 - **Every project.** Filter by topic or search; each card links to the live site, the code and the video.
-- **My Wispr Flow usage card.**
-- **Play my October.** A full-screen replay of the month, about 45 seconds, with music and sound effects.
-
-## The sound
-
-Short audio files made with ElevenLabs: a looping music bed and five effects, about 380 KB in total. They are decoded once and played as buffers, so they play smoothly on phones too; nothing is synthesised in the browser. Sound is off until you turn it on or press Play, and pauses when the tab is hidden.
+- **Play my October.** A full-screen replay of the month.
 
 ## Updating the Wispr Flow numbers
 
@@ -50,7 +45,6 @@ public/og.png              the 1200 x 630 share image
 public/assets/data.js      the 32 repositories (GitHub API, 31 October 2026), topics and videos
 public/assets/flow.js      my Wispr Flow usage numbers
 public/assets/model.js     days, the before and after split and the filter: pure functions, tested
-public/assets/sound.js     the recorded sound
 public/assets/app.js       the page and the played month
 public/assets/audio/       the music bed and sound effects
 tests/model.test.mjs       data and model checks

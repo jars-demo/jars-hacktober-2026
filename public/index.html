@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>October 2026, shipped by voice · JARS DEMO</title>
+    <title>I didn't type my October. I said it. · JARS DEMO</title>
     <meta
       name="description"
       content="I was already shipping in October, because October is Hacktober. Then Wispr Flow came in on 16 October and I got 3x faster: every JARS DEMO project, video and prompt, dictated."
     />
-    <meta name="theme-color" content="#fbf7f1" />
+    <meta name="theme-color" content="#f6f2ea" />
     <link rel="canonical" href="https://hacktober2026.jishanahmed.in/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="JARS DEMO" />
@@ -21,7 +21,7 @@
     <meta property="og:image" content="https://hacktober2026.jishanahmed.in/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="October 2026, shipped by voice: 3x faster after Wispr Flow" />
+    <meta property="og:image:alt" content="I didn't type my October. I said it. 3x faster after Wispr Flow" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -31,7 +31,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap"
     />
     <link rel="stylesheet" href="/assets/styles.css" />
     <script type="module" src="/assets/app.js"></script>
@@ -40,57 +40,68 @@
     <a class="skip" href="#main">Skip to content</a>
 
     <header class="nav">
-      <a class="brand" href="#top"><span class="dot" aria-hidden="true"></span>JARS DEMO <em>· October 2026</em></a>
+      <a class="brand" href="#top">JARS DEMO <span>October 2026</span></a>
       <nav aria-label="Sections">
         <a href="#story">Story</a>
         <a href="#videos">Videos</a>
         <a href="#how">How I build</a>
         <a href="#projects">Projects</a>
       </nav>
-      <button class="sound" id="sound" type="button" aria-pressed="false" aria-label="Sound">
-        <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="label">Sound off</span>
-      </button>
+      <button class="btn small dark" id="play-nav" type="button">▶ Play my October</button>
     </header>
 
     <main id="main">
       <section class="hero" id="top">
-        <p class="eyebrow reveal">Hacktober 2026 · #NoHandsChallenge</p>
-        <h1 class="reveal">I didn't type my October.<br /><em>I said it.</em></h1>
-        <p class="lede reveal">
-          I was already shipping, because October is Hacktober. Then on <b>16 October</b> Wispr Flow came in, and I
-          got <b class="hl" data-times>3×</b> faster. Every project, every video and every prompt to my coding agent
-          after that was spoken, not typed.
-        </p>
-        <div class="cta reveal">
-          <button class="btn primary" id="play" type="button"><span aria-hidden="true">▶</span> Play my October</button>
-          <a class="btn" href="#projects">See the work</a>
+        <div class="hero-text">
+          <p class="kicker">Hacktober 2026 · #NoHandsChallenge</p>
+          <h1>I didn't type my October. <span class="said">I said it.</span></h1>
+          <p class="lede">
+            I was already shipping, because October is Hacktober. Then on <b>16 October</b> Wispr Flow came in, and I
+            got <b class="accent" data-times>3×</b> faster. Every project, video and prompt to my coding agent after
+            that was spoken, not typed.
+          </p>
+          <div class="cta">
+            <button class="btn dark" id="play" type="button">▶ Play my October</button>
+            <a class="btn" href="#projects">See the work</a>
+          </div>
         </div>
-        <dl class="stats reveal" id="hero-stats"></dl>
+        <figure class="hero-card">
+          <img id="flow-card" alt="" width="1728" height="1170" />
+          <figcaption id="flow-cap"></figcaption>
+        </figure>
+        <dl class="stats" id="hero-stats"></dl>
       </section>
 
-      <section class="story" id="story">
-        <h2 class="reveal">Same month. <em>Two speeds.</em></h2>
-        <div class="versus" id="versus"></div>
-      </section>
-
-      <section class="spike" aria-labelledby="spike-h">
-        <div class="head reveal">
-          <h2 id="spike-h">Projects shipped, day by day</h2>
-          <p>One bar per day, from 30 September to 31 October. Tap a bar to see what shipped.</p>
+      <section class="story" id="story" aria-labelledby="story-h">
+        <div class="head">
+          <h2 id="story-h">Same month. Two speeds.</h2>
+          <p>Sixteen days of typing next to sixteen days of talking. Drag the slider.</p>
         </div>
-        <div class="chart reveal" id="chart" role="img"></div>
-        <p class="tip" id="tip" aria-live="polite">&nbsp;</p>
+        <div class="compare" id="compare"></div>
+        <div class="chart-wrap">
+          <div class="chart-head">
+            <h3>Projects shipped, day by day</h3>
+            <p class="tip" id="tip" aria-live="polite">Tap a bar to see what shipped.</p>
+          </div>
+          <div class="chart" id="chart" role="img"></div>
+        </div>
       </section>
 
-      <section class="featured" aria-labelledby="feat-h">
-        <h2 id="feat-h" class="reveal">The headliners</h2>
+      <section class="featured" id="videos" aria-labelledby="feat-h">
+        <div class="head">
+          <h2 id="feat-h">The headliners</h2>
+          <p>
+            No videos before 16 October. Five since, every script dictated.
+            <a href="https://www.youtube.com/@jishanahmedarshaikh">See the channel</a>
+          </p>
+        </div>
         <div class="feat-grid">
-          <article class="feat reveal">
-            <p class="tag">Hackathon entry · Builders track</p>
+          <article class="feat">
+            <p class="label">Hackathon entry · Builders track</p>
             <h3>Breakdown</h3>
             <p>
-              Shipped it? Now understand it. A game that breaks down any code change your AI agent ships: what it did,
-              the engineering behind it and an explain-back round. Built hands-free with Wispr Flow.
+              Shipped it? Now understand it. A game that breaks down any code change your AI agent ships, built
+              hands-free with Wispr Flow.
             </p>
             <div class="yt" data-yt="GDPwqEWVzuE" data-title="Breakdown demo"></div>
             <p class="links">
@@ -98,59 +109,45 @@
               <a href="https://github.com/jars-demo/wispr-demo">Code</a>
             </p>
           </article>
-          <article class="feat reveal">
-            <p class="tag">New today · Explainer</p>
+          <article class="feat">
+            <p class="label">New today · Explainer</p>
             <h3>The $6 billion Binance heist</h3>
             <p>
-              How hackers took $6 billion from Binance without stealing a key. Script dictated, voiced in ElevenLabs,
-              and every scene, caption and sound built with my coding agent.
+              How hackers took $6 billion from Binance without stealing a key. Script dictated, then every scene,
+              caption and cut built with my coding agent.
             </p>
             <div class="yt" data-yt="fztHxrgbt3Q" data-title="The $6 billion Binance heist"></div>
             <p class="links"><a href="https://youtu.be/fztHxrgbt3Q">Watch on YouTube</a></p>
           </article>
         </div>
-      </section>
-
-      <section class="videos" id="videos" aria-labelledby="vid-h">
-        <div class="head reveal">
-          <h2 id="vid-h">Videos this October</h2>
-          <p>
-            None before 16 October. Since then, every script was dictated.
-            <a href="https://www.youtube.com/@jishanahmedarshaikh">See the channel</a>
-          </p>
-        </div>
+        <h3 class="sub">More videos this October</h3>
         <div class="vid-grid" id="vid-grid"></div>
       </section>
 
       <section class="how" id="how" aria-labelledby="how-h">
-        <h2 id="how-h" class="reveal">How I build now. <em>Wispr Flow is everywhere.</em></h2>
+        <div class="head">
+          <h2 id="how-h">How I build now</h2>
+          <p>Wispr Flow is in almost every step. Before 16 October, every one of those was typed.</p>
+        </div>
         <div class="how-grid">
-          <div class="then reveal">
-            <p class="tag">Before 16 October</p>
-            <h3>Think, type, type, type</h3>
-            <ol>
-              <li>Type the spec sheet</li>
-              <li>Type the prompt for the coding agent</li>
-              <li>Type the corrections, fix the typos</li>
-              <li>Type the script, word by word</li>
-              <li>Type more prompts for the video</li>
-            </ol>
-            <p class="note">It worked. It was just slow: my hands were the bottleneck.</p>
+          <div class="then">
+            <p class="label">Before</p>
+            <h3>Think. Type, type, type.</h3>
+            <p>
+              Type the spec. Type the prompt. Type the corrections and fix the typos. Type the script word by word. It
+              worked, it was just slow: my hands were the bottleneck.
+            </p>
           </div>
-          <div class="now reveal">
-            <p class="tag">Since 16 October</p>
-            <h3>Talk, and it ships</h3>
-            <ol id="steps"></ol>
-          </div>
+          <ol class="steps" id="steps"></ol>
         </div>
       </section>
 
       <section class="projects" id="projects" aria-labelledby="proj-h">
-        <div class="head reveal">
+        <div class="head">
           <h2 id="proj-h">Every project</h2>
           <p id="proj-count"></p>
         </div>
-        <div class="filters reveal">
+        <div class="filters">
           <div class="chips" id="chips" role="group" aria-label="Filter by topic"></div>
           <label class="search">
             <span class="sr">Search projects</span>
@@ -159,21 +156,13 @@
         </div>
         <div class="proj-grid" id="proj-grid"></div>
         <p class="empty" id="empty" hidden>No projects match.</p>
-      </section>
-
-      <section class="flow" id="flow" aria-labelledby="flow-h">
-        <div class="flow-text reveal">
-          <p class="tag">My Wispr Flow usage</p>
-          <h2 id="flow-h"><span data-words></span> <em>words, spoken.</em></h2>
-          <p id="flow-line"></p>
-        </div>
-        <img class="card reveal" id="flow-card" alt="" width="1728" height="1170" loading="lazy" />
+        <button class="btn more" id="more" type="button" hidden></button>
       </section>
 
       <section class="end">
-        <h2 class="reveal">October 2026: <em>done.</em></h2>
-        <p class="reveal">Thank you, Hacktober. Thank you, Wispr Flow. On to November.</p>
-        <p class="social reveal">
+        <h2>October 2026: <span class="said">done.</span></h2>
+        <p>Thank you, Hacktober. Thank you, Wispr Flow. On to November.</p>
+        <p class="social">
           <a href="https://github.com/jars-demo">GitHub</a>
           <a href="https://www.youtube.com/@jishanahmedarshaikh">YouTube</a>
           <a href="https://wispr.jishanahmed.in">Breakdown</a>
@@ -182,32 +171,28 @@
     </main>
 
     <footer>
-      <p>
-        By Jishan Ahmed Shaikh · Data from the GitHub API, YouTube and my Wispr Flow usage card on
-        <span id="asof"></span>.
-      </p>
-      <p>
-        Wispr Flow, YouTube and GitHub are trademarks of their owners. This page is not affiliated with or endorsed by
-        them. Sounds made with ElevenLabs.
-      </p>
+      <p class="name">Jishanahmed AR Shaikh (JARS)</p>
+      <p>Wispr Flow, YouTube and GitHub are trademarks of their respective owners.</p>
     </footer>
+
+    <button class="to-top" id="to-top" type="button" aria-label="Back to top" hidden>↑</button>
 
     <div class="show" id="show" hidden role="dialog" aria-modal="true" aria-label="My October, played">
       <div class="show-top">
         <span class="show-date" id="s-date">30 Sep</span>
         <span class="show-count"><b id="s-count">0</b> projects</span>
+        <span class="show-mode" id="s-mode">Typing</span>
         <span class="show-ctl">
-          <button type="button" id="s-sound" aria-label="Toggle sound">Sound</button>
-          <button type="button" id="s-pause" aria-label="Pause">Pause</button>
-          <button type="button" id="s-close" aria-label="Close">Close</button>
+          <button type="button" id="s-pause">Pause</button>
+          <button type="button" id="s-close">Close</button>
         </span>
       </div>
       <div class="show-stage">
         <p class="show-cap" id="s-cap"></p>
+        <div class="wave" id="s-wave" aria-hidden="true"></div>
         <div class="show-cards" id="s-cards"></div>
       </div>
       <div class="show-bars" id="s-bars" aria-hidden="true"></div>
-      <div class="show-progress"><i id="s-prog"></i></div>
     </div>
   </body>
 </html>

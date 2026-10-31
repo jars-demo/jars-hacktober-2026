@@ -1,9 +1,8 @@
 // The page: hero numbers, before and after, the spike chart, videos, how I build, the project grid
 // and the played month.
-import { REPOS, SNAPSHOT, TOPICS, VIDEOS } from './data.js'
+import { REPOS, TOPICS, VIDEOS } from './data.js'
 import { FLOW, WISPR_DAY } from './flow.js'
 import { DAYS, byDay, dateText, dayIndex, fmt, matches, split, ytId } from './model.js'
-import * as sound from './sound.js'
 
 const $ = (s) => document.querySelector(s)
 const el = (tag, cls, html) => {
@@ -17,38 +16,96 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
 
 const days = byDay(REPOS)
 const sp = split(REPOS, VIDEOS, WISPR_DAY)
+const { before: b, after: a } = sp
 const pivot = dayIndex(WISPR_DAY)
 const times = `${Math.round(sp.times)}×`
 const max = Math.max(...days.map((d) => d.repos.length))
 
+// A number that counts up from zero when it scrolls into view. Decimals keep their places.
+const num = (n, places = 0) => `<span data-count="${n}" data-places="${places}">${places ? n.toFixed(places) : fmt(n)}</span>`
+
 // Hero
 document.querySelectorAll('[data-times]').forEach((e) => (e.textContent = times))
 $('#hero-stats').innerHTML = [
-  [REPOS.length, 'Projects shipped'],
-  [VIDEOS.length, 'Videos published'],
-  [fmt(FLOW.words), 'Words dictated'],
-  [FLOW.wpm, 'Words per minute'],
+  [num(REPOS.length), 'Projects shipped'],
+  [num(VIDEOS.length), 'Videos published'],
+  [num(FLOW.words), 'Words dictated'],
+  [num(FLOW.wpm), 'Words per minute'],
 ]
   .map(([n, l]) => `<div><dd>${n}</dd><dt>${l}</dt></div>`)
   .join('')
+const card = $('#flow-card')
+card.src = FLOW.card
+card.alt = `My Wispr Flow usage card: ${fmt(FLOW.words)} words dictated, ${FLOW.wpm} words per minute, ${FLOW.apps} apps, ${FLOW.streak}-day streak`
+$('#flow-cap').textContent = `My Wispr Flow usage card · ${dateText(FLOW.asOf)}`
 
-// Before and after
-const side = (h, cls, when, rows) =>
-  `<div class="side ${cls} reveal"><p class="tag">${cls === 'after' ? 'Talking' : 'Typing'}</p><h3>${h}</h3>
-   <p class="when">${when}</p><ul>${rows.map(([l, v]) => `<li><span>${l}</span><b>${v}</b></li>`).join('')}</ul></div>`
-const { before: b, after: a } = sp
-$('#versus').innerHTML =
-  side('Already shipping', 'before', `${dateText(b.from)} – ${dateText(b.to)} · ${b.days} days`, [
-    ['Projects', b.projects],
-    ['Videos', b.videos],
-    ['Projects a day', b.pace.toFixed(1)],
-  ]) +
-  `<div class="times reveal">${times}<small>faster</small></div>` +
-  side('With Wispr Flow', 'after', `${dateText(a.from)} – ${dateText(a.to)} · ${a.days} days`, [
-    ['Projects', a.projects],
-    ['Videos', a.videos],
-    ['Projects a day', a.pace.toFixed(1)],
-  ])
+// Before and after: one card, two layers, and a slider that wipes from typing to talking. It sweeps
+// on its own while in view, so it reads as something you can move; a drag or a key takes over.
+const PROMPT = 'Build a hands-on caching workshop: eight real bugs, a Python lab and a short explainer video.'
+const layer = (cls, title, s, extra) =>
+  `<div class="layer ${cls}"><div class="inner">
+    <p class="label">${cls === 'with' ? 'With Wispr Flow' : 'Without Wispr Flow'} · ${dateText(s.from)} – ${dateText(s.to)}</p>
+    <h3>${title}</h3>
+    <div class="prompt"><span class="how">${cls === 'with' ? '🎙 Speaking' : '⌨ Typing'}</span><p class="ptext"></p>${
+      cls === 'with' ? '<span class="mini-wave">' + '<i></i>'.repeat(12) + '</span>' : ''
+    }</div>
+    <ul><li><b>${num(s.projects)}</b><span>Projects</span></li><li><b>${num(s.videos)}</b><span>Videos</span></li>
+    <li><b>${num(s.pace, 1)}</b><span>A day</span></li>${extra}</ul></div></div>`
+$('#compare').innerHTML =
+  layer('without', 'Think. Type, type, type.', b, '') +
+  layer('with', 'Talk, and it ships.', a, `<li class="x"><b>${times}</b><span>Faster</span></li>`) +
+  `<div class="handle" aria-hidden="true"><span>‹ ›</span></div>
+   <input class="range" type="range" min="0" max="100" value="50" aria-label="Slide from without Wispr Flow to with Wispr Flow" />`
+const compare = $('#compare')
+const range = compare.querySelector('.range')
+let pos = 50
+let auto = !reduced
+let idle = 0
+let seen = false
+const setPos = (p) => {
+  pos = Math.max(0, Math.min(100, p))
+  compare.style.setProperty('--pos', `${pos}%`)
+  range.value = String(Math.round(pos))
+}
+setPos(50)
+const takeOver = () => {
+  auto = false
+  clearTimeout(idle)
+  idle = setTimeout(() => (auto = !reduced), 5000)
+}
+range.addEventListener('input', () => {
+  takeOver()
+  setPos(Number(range.value))
+})
+range.addEventListener('pointerdown', takeOver)
+const t0 = performance.now()
+const sweep = (now) => {
+  if (auto && seen) setPos(50 + 26 * Math.sin((now - t0) / 1500))
+  requestAnimationFrame(sweep)
+}
+requestAnimationFrame(sweep)
+new IntersectionObserver(([e]) => (seen = e.isIntersecting), { threshold: 0.3 }).observe(compare)
+
+// Both prompts loop: typed letter by letter on one side, arriving in whole words on the other.
+const [slow, fast] = compare.querySelectorAll('.ptext')
+const loopPrompts = async () => {
+  for (;;) {
+    slow.textContent = ''
+    fast.textContent = ''
+    const words = PROMPT.split(' ')
+    let w = 0
+    for (let i = 0; i <= PROMPT.length; i++) {
+      slow.textContent = PROMPT.slice(0, i)
+      if (i % 3 === 0 && w < words.length) fast.textContent = words.slice(0, ++w).join(' ')
+      await new Promise((r) => setTimeout(r, seen ? 70 : 400))
+    }
+    await new Promise((r) => setTimeout(r, 1800))
+  }
+}
+if (reduced) {
+  slow.textContent = PROMPT
+  fast.textContent = PROMPT
+} else loopPrompts()
 
 // Spike chart
 const chart = $('#chart')
@@ -60,15 +117,14 @@ const tip = $('#tip')
 days.forEach((d, i) => {
   const btn = el('button', i >= pivot ? 'after' : '')
   btn.type = 'button'
-  if ([0, pivot, DAYS - 1].includes(i)) btn.classList.add('label')
+  if ([0, pivot, DAYS - 1].includes(i)) btn.classList.add('lbl')
   btn.setAttribute('aria-label', `${dateText(d.date)}: ${d.repos.length} projects`)
-  btn.innerHTML = `<i style="height:${(d.repos.length / max) * 100}%;transition-delay:${i * 28}ms"></i><small>${
+  btn.innerHTML = `<i style="height:${(d.repos.length / max) * 100}%;transition-delay:${i * 30}ms"></i><small>${
     i % 4 === 0 || i === pivot || i === DAYS - 1 ? dateText(d.date) : ''
   }</small>`
   btn.addEventListener('click', () => {
     chart.querySelectorAll('[aria-pressed]').forEach((x) => x.removeAttribute('aria-pressed'))
     btn.setAttribute('aria-pressed', 'true')
-    sound.play('tick')
     tip.innerHTML = d.repos.length
       ? `<b>${dateText(d.date)}</b> · ${d.repos.map((r) => esc(r.n)).join(', ')}`
       : `<b>${dateText(d.date)}</b> · nothing new that day`
@@ -87,7 +143,6 @@ const lite = (box) => {
   btn.type = 'button'
   btn.setAttribute('aria-label', `Play ${box.dataset.title}`)
   btn.addEventListener('click', () => {
-    sound.stopBed()
     const f = el('iframe')
     f.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`
     f.title = box.dataset.title
@@ -97,19 +152,22 @@ const lite = (box) => {
   })
   box.append(btn)
 }
+const featured = [...document.querySelectorAll('.feat .yt')].map((x) => x.dataset.yt)
 const repoOf = (n) => REPOS.find((r) => r.n === n)
-$('#vid-grid').innerHTML = VIDEOS.map((v) => {
-  const r = v.r && repoOf(v.r)
-  return `<article class="vid reveal"><div class="yt" data-yt="${v.id}" data-title="${esc(v.t)}"></div>
-    <p class="k">${v.k} · ${dateText(v.c)}</p><p class="t">${esc(v.t)}</p>
+$('#vid-grid').innerHTML = VIDEOS.filter((v) => !featured.includes(v.id))
+  .map((v) => {
+    const r = v.r && repoOf(v.r)
+    return `<article class="vid"><div class="yt" data-yt="${v.id}" data-title="${esc(v.t)}"></div>
+    <p class="label">${v.k} · ${dateText(v.c)}</p><p class="t">${esc(v.t)}</p>
     ${r && r.h && !ytId(r.h) ? `<p class="d"><a href="${r.h}">Try the project</a></p>` : ''}</article>`
-}).join('')
+  })
+  .join('')
 document.querySelectorAll('.yt').forEach(lite)
 
 // How I build
 const STEPS = [
   ['I talk the spec sheet out', true],
-  ['I talk the coding agent through it, with that spec', true],
+  ['I talk my coding agent through it, with that spec', true],
   ['I correct the agent, out loud', true],
   ['I load the right agent skills', false],
   ['I direct the agent again, out loud', true],
@@ -121,11 +179,13 @@ const STEPS = [
   ['I direct the agent through the video, the polish and the publish', true],
 ]
 $('#steps').innerHTML = STEPS.map(
-  ([t, v]) => `<li class="${v ? 'voice' : ''}"><span>${t}</span>${v ? '<span class="mic">🎙 Wispr Flow</span>' : ''}</li>`,
+  ([t, v]) => `<li class="${v ? 'voice' : ''}"><span>${t}${v ? '<small>WisprFlow</small>' : ''}</span></li>`,
 ).join('')
 
-// Projects
+// Projects: the first nine, then all of them on request.
 let topic = ''
+let showAll = false
+const SHOWN = 9
 const chips = $('#chips')
 const chip = (k, label, color) => {
   const c = el('button', '', `${color ? `<i style="background:${color}"></i>` : ''}${label}`)
@@ -134,7 +194,6 @@ const chip = (k, label, color) => {
   c.addEventListener('click', () => {
     topic = k
     chips.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === c)))
-    sound.play('tick')
     renderProjects()
   })
   return c
@@ -143,69 +202,92 @@ chips.append(chip('', 'All'))
 for (const [k, t] of Object.entries(TOPICS)) if (REPOS.some((r) => r.k === k)) chips.append(chip(k, t.label, t.color))
 const q = $('#q')
 q.addEventListener('input', () => renderProjects())
+const more = $('#more')
+more.addEventListener('click', () => {
+  showAll = !showAll
+  renderProjects()
+  if (!showAll) $('#projects').scrollIntoView()
+})
 const sorted = [...REPOS].sort((x, y) => y.c.localeCompare(x.c) || x.n.localeCompare(y.n))
 function renderProjects() {
   const list = sorted.filter((r) => matches(r, topic, q.value))
-  $('#proj-grid').innerHTML = list
+  const shown = showAll || q.value.trim() ? list : list.slice(0, SHOWN)
+  $('#proj-grid').innerHTML = shown
     .map((r) => {
       const t = TOPICS[r.k]
       const video = r.v || (ytId(r.h) ? r.h : null)
       const site = r.h && !ytId(r.h) ? r.h : null
-      return `<article class="proj"><div class="meta"><i style="background:${t.color}"></i>${t.label} · ${dateText(r.c)}${
-        r.c >= WISPR_DAY ? '<span class="voice">🎙 By voice</span>' : ''
-      }</div><h3>${esc(r.n)}</h3><p>${esc(r.d)}</p><p class="links">${site ? `<a href="${site}">Live</a>` : ''}<a href="https://github.com/jars-demo/${r.n}">Code</a>${
+      return `<article class="proj"><div class="meta"><i style="background:${t.color}"></i>${t.label} · ${dateText(r.c)}</div>
+      <h3>${esc(r.n)}</h3><p>${esc(r.d)}</p>${r.c >= WISPR_DAY ? '<span class="wf">Built leveraging WisprFlow</span>' : ''}
+      <p class="links">${site ? `<a href="${site}">Live</a>` : ''}<a href="https://github.com/jars-demo/${r.n}">Code</a>${
         video ? `<a href="${video}">Video</a>` : ''
       }</p></article>`
     })
     .join('')
   $('#empty').hidden = list.length > 0
-  $('#proj-count').textContent = `${list.length} of ${REPOS.length} projects, newest first. ${a.projects} of them were built by voice.`
+  more.hidden = list.length <= SHOWN || !!q.value.trim()
+  more.textContent = showAll ? 'Show fewer' : `Show all ${list.length} projects`
+  $('#proj-count').textContent = `${REPOS.length} projects, newest first. ${a.projects} of them built since ${dateText(WISPR_DAY)}.`
 }
 renderProjects()
 
-// Wispr Flow usage
-document.querySelectorAll('[data-words]').forEach((e) => (e.textContent = fmt(FLOW.words)))
-$('#flow-line').textContent = `${FLOW.wpm} words a minute, across ${FLOW.apps} apps, with a ${FLOW.streak}-day streak. Specs, prompts, corrections, scripts, posts: if I wrote it this month, I said it first.`
-const card = $('#flow-card')
-card.src = FLOW.card
-card.alt = `My Wispr Flow usage card: ${fmt(FLOW.words)} words dictated, ${FLOW.wpm} words per minute, ${FLOW.apps} apps, ${FLOW.streak}-day streak`
-$('#asof').textContent = dateText(FLOW.asOf > SNAPSHOT ? FLOW.asOf : SNAPSHOT) + ' 2026'
-
-// Scroll reveal
+// Motion: elements rise into place as they arrive, numbers count up, the chart grows.
+const countUp = (e) => {
+  const to = Number(e.dataset.count)
+  const places = Number(e.dataset.places)
+  const t0 = performance.now()
+  const dur = 1100
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / dur)
+    const v = to * (1 - Math.pow(1 - k, 3))
+    e.textContent = places ? v.toFixed(places) : fmt(Math.round(v))
+    if (k < 1) requestAnimationFrame(step)
+  }
+  requestAnimationFrame(step)
+}
+const groups = [
+  ['.hero-text > *, .hero-card, .stats', 0.08],
+  ['.head', 0],
+  ['.compare, .chart-wrap', 0.1],
+  ['.feat, .vid', 0.08],
+  ['.then, .steps li', 0.04],
+  ['.end > *', 0.1],
+]
+for (const [sel, stagger] of groups)
+  document.querySelectorAll(sel).forEach((e, i) => {
+    e.classList.add('rise')
+    e.style.setProperty('--d', `${(i % 12) * stagger}s`)
+  })
 const io = new IntersectionObserver(
   (entries) => {
     for (const e of entries) {
       if (!e.isIntersecting) continue
       e.target.classList.add('in')
-      if (e.target === chart) sound.play('whoosh', { volume: 0.6 })
+      e.target.querySelectorAll('[data-count]').forEach(countUp)
       io.unobserve(e.target)
     }
   },
-  { threshold: 0.18 },
+  { threshold: 0.15 },
 )
-document.querySelectorAll('.reveal, #chart').forEach((e) => (reduced ? e.classList.add('in') : io.observe(e)))
+const watched = document.querySelectorAll('.rise, #chart, .hero h1, .end h2')
+if (reduced) watched.forEach((e) => e.classList.add('in'))
+else watched.forEach((e) => io.observe(e))
 
-// Sound toggle
-const soundBtn = $('#sound')
-const showSound = () => {
-  soundBtn.setAttribute('aria-pressed', String(sound.enabled))
-  soundBtn.querySelector('.label').textContent = sound.enabled ? 'Sound on' : 'Sound off'
-  $('#s-sound').textContent = sound.enabled ? 'Sound on' : 'Sound off'
-}
-const toggleSound = async () => {
-  await sound.setEnabled(!sound.enabled)
-  showSound()
-  sound.play('pop')
-  if (!show.hidden) sound.enabled ? sound.startBed() : sound.stopBed()
-}
-soundBtn.addEventListener('click', toggleSound)
-showSound()
+// Back to top
+const toTop = $('#to-top')
+toTop.hidden = false
+const onScroll = () => toTop.classList.toggle('hide', scrollY < 900)
+addEventListener('scroll', onScroll, { passive: true })
+onScroll()
+toTop.addEventListener('click', () => scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }))
 
-// The played month
+// The played month: before 16 October every caption is typed out letter by letter; after it, the
+// words arrive whole, the way speech does.
 const show = $('#show')
 const cap = $('#s-cap')
 const cards = $('#s-cards')
 const bars = $('#s-bars')
+$('#s-wave').innerHTML = Array.from({ length: 24 }, (_, i) => `<i style="animation-delay:${-((i * 137) % 1000)}ms"></i>`).join('')
 let run = 0
 let paused = false
 
@@ -223,22 +305,37 @@ const wait = (ms) =>
     requestAnimationFrame(tick)
   })
 
-const caption = async (html, hold = 0) => {
-  cap.classList.add('out')
-  await wait(280)
-  cap.innerHTML = html
-  cap.classList.remove('out')
-  if (hold) await wait(hold)
+// Typed: one character at a time, with a cursor. Spoken: word by word, quickly.
+const type = async (text, hold = 900) => {
+  cap.classList.add('typing')
+  cap.textContent = ''
+  for (const ch of text) {
+    cap.textContent += ch
+    await wait(ch === ' ' ? 40 : 55)
+  }
+  await wait(hold)
+}
+// *word* is shown in green, !word! in the accent colour.
+const say = async (text, hold = 1200) => {
+  cap.classList.remove('typing')
+  const words = text.split(' ')
+  cap.innerHTML = words
+    .map((w, i) => {
+      const cls = w.startsWith('*') ? 'w g' : w.startsWith('!') ? 'w a' : 'w'
+      return `<span class="${cls}" style="animation-delay:${i * 70}ms">${esc(w.replace(/[*!]/g, ''))}</span>`
+    })
+    .join(' ')
+  await wait(words.length * 70 + hold)
 }
 const addCard = (html, cls = '') => {
-  const all = cards.querySelectorAll('.show-card:not(.gone)')
-  if (all.length >= 14) all[0].remove()
-  cards.querySelectorAll('.show-card').forEach((c) => c.classList.add('old'))
+  const all = cards.querySelectorAll('.show-card')
+  if (all.length >= 15) all[0].remove()
+  all.forEach((c) => c.classList.add('old'))
   cards.append(el('div', `show-card ${cls}`, html))
 }
 const setDay = (i) => {
   $('#s-date').textContent = dateText(days[i].date)
-  bars.querySelectorAll('i').forEach((b, j) => b.classList.toggle('today', j === i))
+  bars.querySelectorAll('i').forEach((x, j) => x.classList.toggle('today', j === i))
 }
 
 async function playMonth() {
@@ -246,82 +343,67 @@ async function playMonth() {
   paused = false
   $('#s-pause').textContent = 'Pause'
   show.hidden = false
-  show.classList.remove('wispr')
+  show.classList.remove('talk')
+  $('#s-mode').textContent = 'Typing'
   document.body.style.overflow = 'hidden'
   cards.replaceChildren()
+  cap.textContent = ''
   bars.innerHTML = days.map((_, i) => `<i class="${i >= pivot ? 'after' : ''}"></i>`).join('')
   const barEls = [...bars.children]
   let count = 0
-  const start = performance.now()
-  const total = 44000
-  const prog = $('#s-prog')
-  const progress = () => {
-    if (id !== run) return
-    prog.style.width = `${Math.min(100, ((performance.now() - start) / total) * 100)}%`
-    requestAnimationFrame(progress)
-  }
-  requestAnimationFrame(progress)
   $('#s-count').textContent = '0'
-  sound.startBed()
-  sound.play('whoosh')
+  const land = async (i, r, gap) => {
+    count++
+    $('#s-count').textContent = count
+    barEls[i].style.height = `${(days[i].repos.length / max) * 100}%`
+    addCard(`<i style="background:${TOPICS[r.k].color}"></i>${esc(r.n)}`)
+    await wait(gap)
+  }
 
   try {
-    await caption('October is <em>Hacktober.</em>', 2000)
-    await caption('So I was already shipping.', 1400)
-    await caption('Typing every prompt.')
+    await type('October is Hacktober.', 700)
+    await type('So I was already shipping...', 500)
+    await type('typing every prompt.', 300)
     for (let i = 0; i < pivot; i++) {
       setDay(i)
-      for (const r of days[i].repos) {
-        count++
-        $('#s-count').textContent = count
-        barEls[i].style.height = `${(days[i].repos.length / max) * 100}%`
-        addCard(`<i style="background:${TOPICS[r.k].color}"></i>${esc(r.n)}`)
-        sound.play('pop', { rate: 0.9 })
-        await wait(420)
-      }
-      await wait(320)
+      for (const r of days[i].repos) await land(i, r, 520)
+      await wait(260)
     }
 
-    cards.querySelectorAll('.show-card').forEach((c) => c.remove())
-    show.classList.add('wispr')
+    cards.replaceChildren()
+    show.classList.add('talk')
+    $('#s-mode').textContent = 'Talking · Wispr Flow'
     setDay(pivot)
-    sound.play('reveal')
-    await caption(`${dateText(WISPR_DAY)}. <em>Wispr Flow</em> comes in.`, 2400)
-    await caption('Now I just <em>talk.</em>')
+    await say(`${dateText(WISPR_DAY)}. *Wispr *Flow comes in.`, 1600)
+    await say('Now I just *talk.', 400)
 
     for (let i = pivot; i < DAYS; i++) {
       setDay(i)
-      for (const r of days[i].repos) {
-        count++
-        $('#s-count').textContent = count
-        barEls[i].style.height = `${(days[i].repos.length / max) * 100}%`
-        addCard(`<i style="background:${TOPICS[r.k].color}"></i>${esc(r.n)}`)
-        sound.play('pop', { rate: 1.1 })
-        await wait(230)
-      }
+      for (const r of days[i].repos) await land(i, r, 200)
       for (const v of VIDEOS.filter((x) => x.c === days[i].date)) {
         addCard(`▶ ${esc(v.t.length > 46 ? v.t.slice(0, 44) + '…' : v.t)}`, 'video')
-        sound.play('tick')
-        await wait(520)
+        await wait(480)
       }
-      await wait(240)
+      await wait(200)
     }
 
-    cards.replaceChildren(el('div', 'big', times))
-    sound.play('finale')
-    await caption('faster, by voice.', 2600)
-    cards.append(
-      el(
-        'div',
-        'finale',
-        `<div><b>${b.projects} → ${a.projects}</b><span>projects</span></div>
-         <div><b>${b.videos} → ${a.videos}</b><span>videos</span></div>
-         <div><b>${fmt(FLOW.words)}</b><span>words dictated</span></div>`,
-      ),
+    cards.replaceChildren()
+    await say(`!${times} faster, by voice.`, 600)
+    const f = el(
+      'div',
+      'finale',
+      [
+        [times, 'faster'],
+        [`${b.projects} → ${a.projects}`, 'projects'],
+        [`${b.videos} → ${a.videos}`, 'videos'],
+        [fmt(FLOW.words), 'words dictated'],
+      ]
+        .map(([v, l], i) => `<div style="--d:${i * 0.18}s"><b>${v}</b><span>${l}</span></div>`)
+        .join(''),
     )
-    await wait(3400)
-    await caption('October 2026: <em>done.</em>', 3000)
-    sound.stopBed()
+    cards.append(f)
+    await wait(3200)
+    await say('October 2026: *done.', 2000)
     $('#s-pause').textContent = 'Replay'
   } catch {
     // Closed or replayed mid-way.
@@ -330,21 +412,13 @@ async function playMonth() {
 
 function closeShow() {
   run++
-  sound.stopBed()
   show.hidden = true
   document.body.style.overflow = ''
-  $('#play').focus()
 }
 
-// Playing the month turns the sound on: it is made to be heard, and the mute is one tap away.
-$('#play').addEventListener('click', async () => {
-  if (!sound.enabled) await sound.setEnabled(true)
-  else await sound.unlock()
-  showSound()
-  playMonth()
-})
+$('#play').addEventListener('click', playMonth)
+$('#play-nav').addEventListener('click', playMonth)
 $('#s-close').addEventListener('click', closeShow)
-$('#s-sound').addEventListener('click', toggleSound)
 $('#s-pause').addEventListener('click', (e) => {
   if (e.target.textContent === 'Replay') return playMonth()
   paused = !paused
@@ -358,5 +432,3 @@ addEventListener('keydown', (e) => {
     $('#s-pause').click()
   }
 })
-// Restore the sound setting on first interaction (browsers need a tap before audio can start).
-if (sound.enabled) addEventListener('pointerdown', () => sound.unlock(), { once: true })

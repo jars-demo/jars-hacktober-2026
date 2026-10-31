@@ -49,9 +49,7 @@ test('the project filter matches topic and text', () => {
   assert.ok(!matches(r, '', 'kubernetes-operator'))
 })
 
-test('the usage card and every sound file are in place', () => {
+test('the usage card is in place', () => {
   assert.ok(FLOW.words > 0 && FLOW.wpm > 0)
   assert.ok(existsSync(new URL(`../public/${FLOW.card}`, import.meta.url)))
-  for (const f of ['bed', 'whoosh', 'pop', 'tick', 'reveal', 'finale'])
-    assert.ok(existsSync(new URL(`../public/assets/audio/${f}.mp3`, import.meta.url)), f)
 })
