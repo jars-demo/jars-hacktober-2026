@@ -1,940 +1,362 @@
-import { REPOS } from './data.js'
-import {
-  CONSTELLATIONS,
-  DAYS,
-  PACE,
-  SKILLS,
-  achievementList,
-  chart,
-  clock,
-  dateText,
-  earnedIds,
-  links,
-  matches,
-  paginate,
-  runtime,
-} from './model.js'
-import * as sound from './audio.js'
-import { jarsLine, mountJars } from './companion.js'
+// The page: hero numbers, before and after, the spike chart, videos, how I build, the project grid
+// and the played month.
+import { REPOS, SNAPSHOT, TOPICS, VIDEOS } from './data.js'
+import { FLOW, WISPR_DAY } from './flow.js'
+import { DAYS, byDay, dateText, dayIndex, fmt, matches, split, ytId } from './model.js'
+import * as sound from './sound.js'
 
-const { stars, groups, perDay, peak, newestDay } = chart(REPOS)
-const ACHIEVEMENTS = achievementList(groups, stars.length)
-const TOPICS = Object.keys(CONSTELLATIONS).filter((k) => groups[k])
-const TOTAL = runtime(perDay)
-const NS = 'http://www.w3.org/2000/svg'
-const MEDAL =
-  '<svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><path fill="currentColor" d="M11 1.5l2.6 6.9 6.9 2.6-6.9 2.6L11 20.5l-2.6-6.9L1.5 11l6.9-2.6z"/></svg>'
-const $ = (id) => document.getElementById(id)
-const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
-const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
-
-// Styles are set through the CSSOM, never as style attributes, so the content security policy
-// can stay strict.
-function el(tag, attrs = {}, parent) {
-  const node = document.createElementNS(NS, tag)
-  for (const key in attrs) node.setAttribute(key, attrs[key])
-  if (parent) parent.appendChild(node)
-  return node
+const $ = (s) => document.querySelector(s)
+const el = (tag, cls, html) => {
+  const e = document.createElement(tag)
+  if (cls) e.className = cls
+  if (html != null) e.innerHTML = html
+  return e
 }
-function restart(node, cls) {
-  node.classList.remove(cls)
-  void node.getBoundingClientRect()
-  node.classList.add(cls)
-}
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
 
-// Progress lives in this browser only, and the page works without it.
-const KEY = 'jars-october-2026'
-function load() {
-  try {
-    return JSON.parse(localStorage.getItem(KEY)) || {}
-  } catch {
-    return {}
-  }
-}
-const saved = load()
-const progress = { charted: new Set(saved.charted || []), month: Boolean(saved.month), peak: Boolean(saved.peak) }
-let soundOn = saved.sound !== false
-const unlocked = new Set(earnedIds(progress, groups))
-const jars = mountJars()
-const tally = () => ({ charted: progress.charted.size, total: stars.length })
-jars.fill(progress.charted.size / stars.length)
-setTimeout(() => jars.say(jarsLine('hello', tally())), 1200)
-function save() {
-  try {
-    localStorage.setItem(KEY, JSON.stringify({ ...progress, charted: [...progress.charted], sound: soundOn }))
-  } catch {
-    // Private windows and blocked storage: progress lasts until the tab closes.
-  }
-}
-sound.setOn(soundOn)
+const days = byDay(REPOS)
+const sp = split(REPOS, VIDEOS, WISPR_DAY)
+const pivot = dayIndex(WISPR_DAY)
+const times = `${Math.round(sp.times)}×`
+const max = Math.max(...days.map((d) => d.repos.length))
 
-// Headline numbers, from the data rather than typed in.
-const peakDay = perDay.indexOf(peak)
-$('kpiProjects').textContent = stars.length
-$('kpiTopics').textContent = TOPICS.length
-$('kpiPeak').textContent = peak
-$('kpiPeakDay').textContent = `on ${dateText(peakDay)}`
-$('watchDur').textContent = clock(TOTAL)
-$('playDur').textContent = clock(TOTAL)
+// Hero
+document.querySelectorAll('[data-times]').forEach((e) => (e.textContent = times))
+$('#hero-stats').innerHTML = [
+  [REPOS.length, 'Projects shipped'],
+  [VIDEOS.length, 'Videos published'],
+  [fmt(FLOW.words), 'Words dictated'],
+  [FLOW.wpm, 'Words per minute'],
+]
+  .map(([n, l]) => `<div><dd>${n}</dd><dt>${l}</dt></div>`)
+  .join('')
 
-// Graticule, labelled like hours of right ascension.
-const grat = $('graticule')
-for (let x = 0; x <= 100; x += 12.5) el('line', { x1: x, y1: 0, x2: x, y2: 58, class: 'grat' }, grat)
-for (let y = 0; y <= 58; y += 14.5) el('line', { x1: 0, y1: y, x2: 100, y2: y, class: 'grat' }, grat)
-for (let i = 0; i < 8; i++) {
-  const t = el('text', { x: i * 12.5 + 0.6, y: 2.1, class: 'grat-label' }, grat)
-  t.textContent = `${String(i * 3).padStart(2, '0')}h`
-}
+// Before and after
+const side = (h, cls, when, rows) =>
+  `<div class="side ${cls} reveal"><p class="tag">${cls === 'after' ? 'Talking' : 'Typing'}</p><h3>${h}</h3>
+   <p class="when">${when}</p><ul>${rows.map(([l, v]) => `<li><span>${l}</span><b>${v}</b></li>`).join('')}</ul></div>`
+const { before: b, after: a } = sp
+$('#versus').innerHTML =
+  side('Already shipping', 'before', `${dateText(b.from)} – ${dateText(b.to)} · ${b.days} days`, [
+    ['Projects', b.projects],
+    ['Videos', b.videos],
+    ['Projects a day', b.pace.toFixed(1)],
+  ]) +
+  `<div class="times reveal">${times}<small>faster</small></div>` +
+  side('With Wispr Flow', 'after', `${dateText(a.from)} – ${dateText(a.to)} · ${a.days} days`, [
+    ['Projects', a.projects],
+    ['Videos', a.videos],
+    ['Projects a day', a.pace.toFixed(1)],
+  ])
 
-// Constellation labels: a colour key, the topic and how many projects it holds.
-const conLabels = {}
-for (const k of TOPICS) {
-  const c = CONSTELLATIONS[k]
-  const g = el('g', {}, $('labels'))
-  const label = el('text', { x: c.x, y: c.y + 11.6, 'text-anchor': 'middle', class: 'con-label' }, g)
-  el('tspan', { fill: c.color }, label).textContent = '● '
-  el('tspan', {}, label).textContent = c.label
-  const n = groups[k].length
-  const count = el('text', { x: c.x, y: c.y + 13.5, 'text-anchor': 'middle', class: 'con-count' }, g)
-  count.textContent = k === 'skills' ? `1 repository · ${SKILLS} skills` : `${n} ${n === 1 ? 'project' : 'projects'}`
-  conLabels[k] = g
-}
-
-// The skills cluster: one point per skill, like the Pleiades. Seeded, so it is the same every visit.
-let seed = 7
-const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647
-const skillDots = []
-for (let i = 0; i < SKILLS; i++) {
-  const angle = rand() * Math.PI * 2
-  const dist = 1.2 + Math.sqrt(rand()) * 6.2
-  const dot = el(
-    'circle',
-    {
-      cx: CONSTELLATIONS.skills.x + Math.cos(angle) * dist * 1.25,
-      cy: CONSTELLATIONS.skills.y + Math.sin(angle) * dist * 0.8,
-      r: 0.12 + rand() * 0.16,
-      class: rand() < 0.3 ? 'skill twinkle' : 'skill',
-    },
-    $('cluster'),
-  )
-  dot.style.animationDelay = `${(rand() * 3).toFixed(2)}s`
-  skillDots.push(dot)
-}
-
-// Lines join each constellation's stars in the order they were born, in the topic's colour.
-for (const s of stars) {
-  if (!s.prev) continue
-  s.line = el(
-    'line',
-    { x1: s.prev.x, y1: s.prev.y, x2: s.x, y2: s.y, class: 'con-line', stroke: s.con.color },
-    $('lines'),
-  )
-  s.line.style.setProperty('--len', Math.hypot(s.x - s.prev.x, s.y - s.prev.y).toFixed(2))
-}
-
-// Stars: each one a focusable button.
-for (const s of stars) {
-  const label = `${s.n}, ${s.con.label}, created ${dateText(s.day)}`
-  const g = el('g', { class: 'star', tabindex: '0', role: 'button', 'aria-label': label }, $('stars'))
-  const size = s.k === 'skills' ? 1.4 : 1
-  el('circle', { cx: s.x, cy: s.y, r: 2.6 * size, class: 'halo' }, g)
-  el('circle', { cx: s.x, cy: s.y, r: 1.25 * size, class: 'ring' }, g)
-  el('circle', { cx: s.x, cy: s.y, r: 0.42 * size, class: 'core' }, g)
-  el('circle', { cx: s.x, cy: s.y, r: 2.4, class: 'hit' }, g)
-  if (s.day === newestDay) g.classList.add('newest')
-  g.addEventListener('click', () => open(s, true))
-  g.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      e.stopPropagation()
-      open(s, true)
-    } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-      e.preventDefault()
-      step(s, 1)
-    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      e.preventDefault()
-      step(s, -1)
-    }
+// Spike chart
+const chart = $('#chart')
+chart.setAttribute(
+  'aria-label',
+  `Projects per day: ${b.projects} in the ${b.days} days before ${dateText(WISPR_DAY)}, ${a.projects} in the ${a.days} days from it.`,
+)
+const tip = $('#tip')
+days.forEach((d, i) => {
+  const btn = el('button', i >= pivot ? 'after' : '')
+  btn.type = 'button'
+  if ([0, pivot, DAYS - 1].includes(i)) btn.classList.add('label')
+  btn.setAttribute('aria-label', `${dateText(d.date)}: ${d.repos.length} projects`)
+  btn.innerHTML = `<i style="height:${(d.repos.length / max) * 100}%;transition-delay:${i * 28}ms"></i><small>${
+    i % 4 === 0 || i === pivot || i === DAYS - 1 ? dateText(d.date) : ''
+  }</small>`
+  btn.addEventListener('click', () => {
+    chart.querySelectorAll('[aria-pressed]').forEach((x) => x.removeAttribute('aria-pressed'))
+    btn.setAttribute('aria-pressed', 'true')
+    sound.play('tick')
+    tip.innerHTML = d.repos.length
+      ? `<b>${dateText(d.date)}</b> · ${d.repos.map((r) => esc(r.n)).join(', ')}`
+      : `<b>${dateText(d.date)}</b> · nothing new that day`
   })
-  s.g = g
-}
-
-// Table rows, oldest first.
-for (const s of stars) {
-  const tr = document.createElement('tr')
-  tr.className = 'row'
-  tr.tabIndex = 0
-  const repo = `https://github.com/jars-demo/${s.n}`
-  const { site: siteUrl, video } = links(s)
-  const site = siteUrl ? `<a href="${siteUrl}" target="_blank" rel="noopener">Site ↗</a>` : ''
-  const demo = video ? `<a href="${video}" target="_blank" rel="noopener">Demo ↗</a>` : ''
-  tr.innerHTML = `<td class="date">${dateText(s.day)}</td><td class="project"><b>${s.n}</b><span></span></td><td><span class="topic"><i></i><span></span></span></td><td class="lang"></td><td class="links"><a href="${repo}" target="_blank" rel="noopener">Repo ↗</a>${site}${demo}</td><td class="mark"></td>`
-  tr.querySelector('.project span').textContent = s.d
-  tr.querySelector('.topic i').style.background = s.con.color
-  tr.querySelector('.topic span').textContent = s.con.label
-  tr.querySelector('.lang').textContent = s.l || '–'
-  tr.querySelectorAll('a').forEach((a) => a.addEventListener('click', (e) => e.stopPropagation()))
-  tr.addEventListener('click', () => locate(s))
-  tr.addEventListener('keydown', (e) => {
-    if (e.target === tr && (e.key === 'Enter' || e.key === ' ')) {
-      e.preventDefault()
-      locate(s)
-    }
-  })
-  s.tr = tr
-  $('rows').appendChild(tr)
-}
-
-// Topic chips: highlight one constellation on the chart and filter the table.
-let filter = null
-const chips = [null, ...TOPICS].map((key) => {
-  const chip = document.createElement('button')
-  chip.type = 'button'
-  chip.className = 'chip'
-  chip.innerHTML = '<i></i><span></span><span class="n"></span>'
-  if (key) chip.querySelector('i').style.background = CONSTELLATIONS[key].color
-  else chip.querySelector('i').remove()
-  chip.querySelector('span').textContent = key ? CONSTELLATIONS[key].label : 'All topics'
-  chip.querySelector('.n').textContent = key ? groups[key].length : stars.length
-  chip.addEventListener('click', () => setFilter(filter === key ? null : key))
-  $('chips').appendChild(chip)
-  return { key, chip }
+  chart.append(btn)
 })
-function setFilter(key) {
-  filter = key
-  for (const c of chips) c.chip.setAttribute('aria-pressed', String(c.key === key))
-  $('fTopic').value = key || ''
-  page = 1
-  applyView()
-}
+const marker = el('div', 'marker', `<span>${dateText(WISPR_DAY)} · Wispr Flow</span>`)
+marker.style.left = `calc(${(pivot / DAYS) * 100}% - 2px)`
+chart.append(marker)
 
-// Table filters: the topic select mirrors the chips; language and links filter the table only.
-const option = (select, value, label) => select.append(new Option(label, value))
-for (const k of TOPICS) option($('fTopic'), k, `${CONSTELLATIONS[k].label} (${groups[k].length})`)
-const langCount = {}
-for (const s of stars) langCount[s.l] = (langCount[s.l] || 0) + 1
-for (const l of Object.keys(langCount).sort()) option($('fLang'), l, `${l} (${langCount[l]})`)
-$('fTopic').addEventListener('change', (e) => setFilter(e.target.value || null))
-for (const id of ['fLang', 'fKind']) {
-  $(id).addEventListener('change', () => {
-    page = 1
-    applyView()
+// Videos: a thumbnail first, the player only when tapped.
+const lite = (box) => {
+  const id = box.dataset.yt
+  box.style.backgroundImage = `url(https://i.ytimg.com/vi/${id}/hqdefault.jpg)`
+  const btn = el('button')
+  btn.type = 'button'
+  btn.setAttribute('aria-label', `Play ${box.dataset.title}`)
+  btn.addEventListener('click', () => {
+    sound.stopBed()
+    const f = el('iframe')
+    f.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`
+    f.title = box.dataset.title
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'
+    f.allowFullscreen = true
+    box.replaceChildren(f)
   })
+  box.append(btn)
 }
-$('fClear').addEventListener('click', () => {
-  $('search').value = ''
-  $('fLang').value = ''
-  $('fKind').value = ''
-  setFilter(null)
-})
+const repoOf = (n) => REPOS.find((r) => r.n === n)
+$('#vid-grid').innerHTML = VIDEOS.map((v) => {
+  const r = v.r && repoOf(v.r)
+  return `<article class="vid reveal"><div class="yt" data-yt="${v.id}" data-title="${esc(v.t)}"></div>
+    <p class="k">${v.k} · ${dateText(v.c)}</p><p class="t">${esc(v.t)}</p>
+    ${r && r.h && !ytId(r.h) ? `<p class="d"><a href="${r.h}">Try the project</a></p>` : ''}</article>`
+}).join('')
+document.querySelectorAll('.yt').forEach(lite)
 
-// Pagination: ten rows a page.
-let page = 1
-function showPage(n) {
-  page = n
-  applyView()
-  if ($('projects').getBoundingClientRect().top < 0) {
-    $('projects').scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' })
-  }
-}
-$('prev').addEventListener('click', () => showPage(page - 1))
-$('next').addEventListener('click', () => showPage(page + 1))
+// How I build
+const STEPS = [
+  ['I talk the spec sheet out', true],
+  ['I talk the coding agent through it, with that spec', true],
+  ['I correct the agent, out loud', true],
+  ['I load the right agent skills', false],
+  ['I direct the agent again, out loud', true],
+  ['I write the video script myself, by talking', true],
+  ['I give the agent the ElevenLabs script format', false],
+  ['I rework the script, out loud', true],
+  ['The formatted script goes into ElevenLabs', false],
+  ['Out comes the voiceover MP3', false],
+  ['I direct the agent through the video, the polish and the publish', true],
+]
+$('#steps').innerHTML = STEPS.map(
+  ([t, v]) => `<li class="${v ? 'voice' : ''}"><span>${t}</span>${v ? '<span class="mic">🎙 Wispr Flow</span>' : ''}</li>`,
+).join('')
 
-function applyView() {
-  const view = {
-    q: $('search').value.trim().toLowerCase(),
-    topic: filter || '',
-    lang: $('fLang').value,
-    kind: $('fKind').value,
-  }
-  for (const s of stars) {
-    const inTopic = !filter || s.k === filter
-    s.g.classList.toggle('dim', !inTopic)
-    if (s.line) s.line.classList.toggle('dim', !inTopic)
-  }
-  const shown = stars.filter((s) => matches(s, view))
-  const at = paginate(shown.length, page)
-  page = at.page
-  const onPage = new Set(shown.slice(at.from, at.to))
-  for (const s of stars) s.tr.hidden = !onPage.has(s)
-  for (const k of TOPICS) conLabels[k].classList.toggle('dim', Boolean(filter) && filter !== k)
-  $('cluster').classList.toggle('dim', Boolean(filter) && filter !== 'skills')
-  if (!shown.length && $('empty').hidden) jars.say(jarsLine('empty'))
-  $('empty').hidden = shown.length > 0
-  $('fClear').hidden = !(view.q || view.topic || view.lang || view.kind)
-  renderPager(at, shown.length)
-}
-function renderPager(at, n) {
-  $('pager').hidden = n === 0
-  const of = n === stars.length ? `${n} projects` : `${n} matching projects`
-  $('pageInfo').textContent = `${at.from + 1}–${at.to} of ${of}`
-  $('prev').disabled = at.page === 1
-  $('next').disabled = at.page === at.pages
-  const nums = $('pageNums')
-  nums.replaceChildren()
-  for (let i = 1; i <= at.pages; i++) {
-    const b = document.createElement('button')
-    b.type = 'button'
-    b.className = 'page-num'
-    b.textContent = i
-    b.setAttribute('aria-label', `Page ${i}`)
-    if (i === at.page) b.setAttribute('aria-current', 'page')
-    b.addEventListener('click', () => showPage(i))
-    nums.appendChild(b)
-  }
-}
-$('search').addEventListener('input', () => {
-  page = 1
-  applyView()
-})
-
-// Badges.
-const badgeEls = ACHIEVEMENTS.map((a) => {
-  const li = document.createElement('li')
-  li.className = 'badge'
-  li.innerHTML = `<span class="medal">${MEDAL}</span><b></b><span></span>`
-  li.querySelector('b').textContent = a.name
-  li.querySelector('span:last-child').textContent = a.hint
-  $('badgeList').appendChild(li)
-  return li
-})
-
-function render() {
-  const charted = stars.filter((s) => progress.charted.has(s.n)).length
-  $('chartedCount').textContent = charted
-  $('chartedTotal').textContent = stars.length
-  $('chartedBar').style.width = `${(charted / stars.length) * 100}%`
-  $('badgeCount').textContent = unlocked.size
-  $('badgeTotal').textContent = ACHIEVEMENTS.length
-  $('badgeBar').style.width = `${(unlocked.size / ACHIEVEMENTS.length) * 100}%`
-  ACHIEVEMENTS.forEach((a, i) => {
-    const got = unlocked.has(a.id)
-    badgeEls[i].classList.toggle('got', got)
-    badgeEls[i].setAttribute('aria-label', `${a.name}: ${got ? 'earned' : 'not earned yet'}. ${a.hint}`)
+// Projects
+let topic = ''
+const chips = $('#chips')
+const chip = (k, label, color) => {
+  const c = el('button', '', `${color ? `<i style="background:${color}"></i>` : ''}${label}`)
+  c.type = 'button'
+  c.setAttribute('aria-pressed', String(k === topic))
+  c.addEventListener('click', () => {
+    topic = k
+    chips.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === c)))
+    sound.play('tick')
+    renderProjects()
   })
-  for (const s of stars) {
-    const mark = s.tr.lastElementChild
-    const done = progress.charted.has(s.n)
-    mark.textContent = done ? '✓' : ''
-    mark.setAttribute('aria-label', done ? 'Charted' : 'Not charted')
-  }
+  return c
 }
-
-// Unlock anything new, then celebrate it, one toast at a time.
-let toastTimer = null
-function celebrate(a) {
-  const toast = $('toast')
-  toast.innerHTML = `<span class="medal">${MEDAL}</span><span><small>Badge earned</small><b></b></span>`
-  toast.querySelector('b').textContent = a.name
-  toast.classList.add('show')
-  sound.fanfare()
-  jars.cheer()
-  jars.say(jarsLine('badge', { name: a.name }))
-  clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => toast.classList.remove('show'), 2800)
-}
-function advance() {
-  const fresh = earnedIds(progress, groups).filter((id) => !unlocked.has(id))
-  fresh.forEach((id) => unlocked.add(id))
-  save()
-  render()
-  fresh.forEach((id, i) => setTimeout(() => celebrate(ACHIEVEMENTS.find((a) => a.id === id)), 600 + i * 1700))
-}
-
-// The detail pane.
-const detail = $('detail')
-let selected = null
-function renderDetail(s) {
-  const repo = `<a class="btn primary" href="https://github.com/jars-demo/${s.n}" target="_blank" rel="noopener">Repository ↗</a>`
-  const { site: siteUrl, video } = links(s)
-  const site = siteUrl ? `<a class="btn" href="${siteUrl}" target="_blank" rel="noopener">Live site ↗</a>` : ''
-  const demo = video ? `<a class="btn" href="${video}" target="_blank" rel="noopener">Watch the demo ↗</a>` : ''
-  const newest = s.day === newestDay ? '<span class="badge-new">Newest</span>' : ''
-  detail.innerHTML = `<span class="tag"><i></i><span></span></span><h3></h3><p></p><dl><dt>Created</dt><dd>${dateText(s.day)} 2026${newest}</dd><dt>Language</dt><dd class="lang"></dd><dt>Star</dt><dd class="bayer">${s.bayer}</dd></dl><div class="actions">${repo}${site}${demo}</div>`
-  detail.querySelector('.tag i').style.background = s.con.color
-  detail.querySelector('.tag span').textContent = s.con.label
-  detail.querySelector('h3').textContent = s.n
-  detail.querySelector('p').textContent = s.d
-  detail.querySelector('.lang').textContent = s.l || '–'
-  if (progress.charted.has(s.n)) {
-    const done = document.createElement('span')
-    done.className = 'charted'
-    done.textContent = '✓ Charted'
-    detail.querySelector('dl').after(done)
-  }
-}
-function open(s, byUser) {
-  selected = s
-  for (const x of stars) {
-    x.g.classList.toggle('on', x === s)
-    x.tr.classList.toggle('on', x === s)
-  }
-  if (byUser) {
-    sound.wake()
-    sound.chime(s.note)
-    if (!progress.charted.has(s.n)) {
-      progress.charted.add(s.n)
-      jars.fill(progress.charted.size / stars.length)
-      jars.say(jarsLine('chart', { ...tally(), name: s.n, bayer: s.bayer }))
-      advance()
-    }
-  }
-  renderDetail(s)
-}
-// From the table: make sure the star is lit, open it and bring the chart into view.
-function locate(s) {
-  if (s.day > current) showNight(DAYS - 1, false)
-  open(s, true)
-  $('explore').scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' })
-}
-
-let current = DAYS - 1
-function step(s, dir) {
-  const lit = stars.filter((x) => !x.g.classList.contains('hidden') && (!filter || x.k === filter))
-  if (!lit.length) return
-  const at = lit.indexOf(s)
-  const next = lit[(at === -1 ? 0 : at + dir + lit.length) % lit.length]
-  next.g.focus()
-  open(next, true)
-}
-
-// The timeline: projects created each day.
-const tip = $('tip')
-const barEls = perDay.map((n, i) => {
-  const bar = document.createElement('div')
-  bar.className = 'bar'
-  bar.style.height = `${Math.max(6, (n / peak) * 100)}%`
-  bar.addEventListener('mouseenter', () => {
-    tip.textContent = `${dateText(i)} · ${n} ${n === 1 ? 'project' : 'projects'}`
-    tip.style.left = `${((i + 0.5) / DAYS) * 100}%`
-    tip.hidden = false
-  })
-  bar.addEventListener('mouseleave', () => {
-    tip.hidden = true
-  })
-  bar.addEventListener('click', () => goTo(i))
-  $('bars').appendChild(bar)
-  return bar
-})
-
-const visible = (s) => !s.g.classList.contains('hidden')
-function updateCount() {
-  const lit = stars.filter(visible).length
-  $('count').textContent = lit
-  $('thCount').textContent = lit
-  return lit
-}
-
-// The day readouts: the timeline, its label and, in the theater, the big date.
-function dayUI(day) {
-  current = day
-  barEls.forEach((bar, i) => {
-    bar.classList.toggle('lit', i <= day)
-    bar.classList.toggle('today', i === day)
-  })
-  const born = perDay[day] || 0
-  $('nightLabel').innerHTML =
-    day < 0
-      ? 'Before the first day'
-      : `Day ${day + 1} of ${DAYS} · <b>${dateText(day)}</b> · ${born ? `${born} new` : 'no new projects'}`
-  $('scrub').value = Math.max(0, day)
-  $('scrub').setAttribute('aria-valuetext', `${dateText(Math.max(0, day))}, ${updateCount()} projects lit`)
-  if (day < 0) return
-  $('thDay').textContent = `Day ${day + 1} of ${DAYS}`
-  $('thBig').textContent = dateText(day)
-  $('thSub').textContent = born ? `${born} new ${born === 1 ? 'project' : 'projects'}` : 'A quiet day'
-  restart($('thBig'), 'flip')
-}
-
-// Show the sky as it was on one day. Returns the stars that just appeared.
-function showNight(day, animate) {
-  const appeared = []
-  for (const s of stars) {
-    const on = s.day <= day
-    if (on && !visible(s)) appeared.push(s)
-    s.g.classList.toggle('hidden', !on)
-    s.tr.classList.toggle('unborn', !on)
-    if (s.line) s.line.classList.toggle('hidden', !on)
-  }
-  if (animate) appeared.forEach(flare)
-  for (const k of TOPICS) conLabels[k].classList.toggle('hidden', !groups[k].some((s) => s.day <= day))
-  const skillsOn = groups.skills.every((s) => s.day <= day)
-  skillDots.forEach((dot) => dot.classList.toggle('hidden', !skillsOn))
-  dayUI(day)
-  return appeared
-}
-
-function flare(s) {
-  restart(s.g, 'born')
-  if (s.line) restart(s.line, 'drawing')
-}
-
-function goTo(day) {
-  sound.wake()
-  sound.births(showNight(day, true).map((s) => s.note))
-  if (perDay[day] === peak && !progress.peak) {
-    progress.peak = true
-    advance()
-  }
-}
-
-// ---- Effects --------------------------------------------------------------------------------
-
-// A ring of the topic's colour spreading out from a new star.
-function ripple(s, delay = 0) {
-  if (reducedMotion()) return
-  const ring = el('circle', { cx: s.x, cy: s.y, r: 1, class: 'ripple', stroke: s.con.color }, $('fx'))
-  const run = ring.animate(
-    [
-      { transform: 'scale(0.4)', opacity: 0.9 },
-      { transform: 'scale(7)', opacity: 0 },
-    ],
-    { duration: 1700, delay, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'backwards' },
-  )
-  run.onfinish = () => ring.remove()
-}
-
-// The skills cluster bursts out of its star.
-function burstCluster() {
-  skillDots.forEach((dot) => dot.classList.remove('hidden'))
-  if (reducedMotion()) return
-  const { x, y } = CONSTELLATIONS.skills
-  skillDots.forEach((dot, i) => {
-    const dx = x - Number(dot.getAttribute('cx'))
-    const dy = y - Number(dot.getAttribute('cy'))
-    dot.animate(
-      [
-        { transform: `translate(${dx}px, ${dy}px)`, opacity: 0 },
-        { transform: 'none', opacity: 1 },
-      ],
-      {
-        duration: 1200,
-        delay: i * 12,
-        easing: 'cubic-bezier(.2,.8,.2,1)',
-        fill: 'backwards',
-      },
-    )
-  })
-}
-
-// A constellation lights up: lines brighten and every star pulses.
-function glow(k) {
-  if (reducedMotion()) return
-  for (const s of groups[k]) {
-    s.line?.animate(
-      [
-        { strokeOpacity: 0.7, strokeWidth: '0.18px' },
-        { strokeOpacity: 1, strokeWidth: '0.55px' },
-        { strokeOpacity: 0.7, strokeWidth: '0.18px' },
-      ],
-      { duration: 1100, easing: 'ease-in-out' },
-    )
-    s.g
-      .querySelector('.halo')
-      .animate([{ transform: 'scale(1)' }, { transform: 'scale(2.2)', opacity: 1 }, { transform: 'scale(1)' }], {
-        duration: 1100,
-        easing: 'ease-in-out',
-      })
-  }
-}
-
-// A shooting star.
-function meteor(from = [84, 6], to = [52, 19], delay = 0) {
-  if (reducedMotion()) return
-  const g = el('g', { 'aria-hidden': 'true' }, $('sky'))
-  el(
-    'line',
-    { x1: 0, y1: 0, x2: 9, y2: -3.6, stroke: 'url(#trail)', 'stroke-width': 0.3, 'stroke-linecap': 'round' },
-    g,
-  )
-  const run = g.animate(
-    [
-      { transform: `translate(${from[0]}px, ${from[1]}px)`, opacity: 0 },
-      { opacity: 1, offset: 0.15 },
-      { transform: `translate(${to[0]}px, ${to[1]}px)`, opacity: 0 },
-    ],
-    { duration: 1400, delay, easing: 'ease-in', fill: 'backwards' },
-  )
-  run.onfinish = () => g.remove()
-}
-function meteorShower() {
-  for (let i = 0; i < 7; i++) {
-    const x = 55 + Math.random() * 50
-    const y = Math.random() * 18
-    meteor([x, y], [x - 30 - Math.random() * 10, y + 12 + Math.random() * 6], i * 260 + Math.random() * 200)
-  }
-}
-
-// ---- Camera ---------------------------------------------------------------------------------
-
-const svg = $('sky')
-const FULL = { x: 0, y: 0, w: 100, h: 58 }
-const cam = { ...FULL }
-let camFrame = 0
-function setView(v) {
-  Object.assign(cam, v)
-  svg.setAttribute('viewBox', `${cam.x.toFixed(3)} ${cam.y.toFixed(3)} ${cam.w.toFixed(3)} ${cam.h.toFixed(3)}`)
-}
-function moveCamera(to, ms) {
-  cancelAnimationFrame(camFrame)
-  if (reducedMotion()) return setView(FULL)
-  const from = { ...cam }
-  const t0 = performance.now()
-  const ease = (k) => (k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2)
-  const tick = (now) => {
-    const e = ease(Math.min(1, (now - t0) / ms))
-    setView({
-      x: from.x + (to.x - from.x) * e,
-      y: from.y + (to.y - from.y) * e,
-      w: from.w + (to.w - from.w) * e,
-      h: from.h + (to.h - from.h) * e,
+chips.append(chip('', 'All'))
+for (const [k, t] of Object.entries(TOPICS)) if (REPOS.some((r) => r.k === k)) chips.append(chip(k, t.label, t.color))
+const q = $('#q')
+q.addEventListener('input', () => renderProjects())
+const sorted = [...REPOS].sort((x, y) => y.c.localeCompare(x.c) || x.n.localeCompare(y.n))
+function renderProjects() {
+  const list = sorted.filter((r) => matches(r, topic, q.value))
+  $('#proj-grid').innerHTML = list
+    .map((r) => {
+      const t = TOPICS[r.k]
+      const video = r.v || (ytId(r.h) ? r.h : null)
+      const site = r.h && !ytId(r.h) ? r.h : null
+      return `<article class="proj"><div class="meta"><i style="background:${t.color}"></i>${t.label} · ${dateText(r.c)}${
+        r.c >= WISPR_DAY ? '<span class="voice">🎙 By voice</span>' : ''
+      }</div><h3>${esc(r.n)}</h3><p>${esc(r.d)}</p><p class="links">${site ? `<a href="${site}">Live</a>` : ''}<a href="https://github.com/jars-demo/${r.n}">Code</a>${
+        video ? `<a href="${video}">Video</a>` : ''
+      }</p></article>`
     })
-    if (e < 1) camFrame = requestAnimationFrame(tick)
-  }
-  camFrame = requestAnimationFrame(tick)
+    .join('')
+  $('#empty').hidden = list.length > 0
+  $('#proj-count').textContent = `${list.length} of ${REPOS.length} projects, newest first. ${a.projects} of them were built by voice.`
 }
-function focusOn(s, zoom = 1.75) {
-  const w = 100 / zoom
-  const h = 58 / zoom
-  return { x: clamp(s.x - w / 2, 0, 100 - w), y: clamp(s.y - h * 0.45, 0, 58 - h), w, h }
+renderProjects()
+
+// Wispr Flow usage
+document.querySelectorAll('[data-words]').forEach((e) => (e.textContent = fmt(FLOW.words)))
+$('#flow-line').textContent = `${FLOW.wpm} words a minute, across ${FLOW.apps} apps, with a ${FLOW.streak}-day streak. Specs, prompts, corrections, scripts, posts: if I wrote it this month, I said it first.`
+const card = $('#flow-card')
+card.src = FLOW.card
+card.alt = `My Wispr Flow usage card: ${fmt(FLOW.words)} words dictated, ${FLOW.wpm} words per minute, ${FLOW.apps} apps, ${FLOW.streak}-day streak`
+$('#asof').textContent = dateText(FLOW.asOf > SNAPSHOT ? FLOW.asOf : SNAPSHOT) + ' 2026'
+
+// Scroll reveal
+const io = new IntersectionObserver(
+  (entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue
+      e.target.classList.add('in')
+      if (e.target === chart) sound.play('whoosh', { volume: 0.6 })
+      io.unobserve(e.target)
+    }
+  },
+  { threshold: 0.18 },
+)
+document.querySelectorAll('.reveal, #chart').forEach((e) => (reduced ? e.classList.add('in') : io.observe(e)))
+
+// Sound toggle
+const soundBtn = $('#sound')
+const showSound = () => {
+  soundBtn.setAttribute('aria-pressed', String(sound.enabled))
+  soundBtn.querySelector('.label').textContent = sound.enabled ? 'Sound on' : 'Sound off'
+  $('#s-sound').textContent = sound.enabled ? 'Sound on' : 'Sound off'
 }
+const toggleSound = async () => {
+  await sound.setEnabled(!sound.enabled)
+  showSound()
+  sound.play('pop')
+  if (!show.hidden) sound.enabled ? sound.startBed() : sound.stopBed()
+}
+soundBtn.addEventListener('click', toggleSound)
+showSound()
 
-// ---- The theater: the month, played --------------------------------------------------------
+// The played month
+const show = $('#show')
+const cap = $('#s-cap')
+const cards = $('#s-cards')
+const bars = $('#s-bars')
+let run = 0
+let paused = false
 
-const CANCEL = Symbol('cancel')
-let run = null
-const panel = $('explore')
-const outside = () => document.querySelectorAll('.skip, .nav, .hero, #badges, #projects, .foot')
-
-// Waits on the animation clock, so pausing (or a hidden tab) holds the show.
-function sleep(ms) {
-  const r = run
-  return new Promise((resolve, reject) => {
+const wait = (ms) =>
+  new Promise((resolve, reject) => {
+    const id = run
     let left = ms
     let last = performance.now()
     const tick = (now) => {
-      if (r.cancelled) return reject(CANCEL)
-      const dt = now - last
+      if (id !== run) return reject(new Error('stopped'))
+      if (!paused) left -= now - last
       last = now
-      if (!r.paused) {
-        left -= dt
-        r.elapsed = Math.min(TOTAL, r.elapsed + dt)
-        $('thBar').style.width = `${(r.elapsed / TOTAL) * 100}%`
-        $('thClock').textContent = `${clock(r.elapsed)} / ${clock(TOTAL)}`
-      }
-      if (left <= 0) resolve()
-      else requestAnimationFrame(tick)
+      left <= 0 ? resolve() : requestAnimationFrame(tick)
     }
     requestAnimationFrame(tick)
   })
+
+const caption = async (html, hold = 0) => {
+  cap.classList.add('out')
+  await wait(280)
+  cap.innerHTML = html
+  cap.classList.remove('out')
+  if (hold) await wait(hold)
+}
+const addCard = (html, cls = '') => {
+  const all = cards.querySelectorAll('.show-card:not(.gone)')
+  if (all.length >= 14) all[0].remove()
+  cards.querySelectorAll('.show-card').forEach((c) => c.classList.add('old'))
+  cards.append(el('div', `show-card ${cls}`, html))
+}
+const setDay = (i) => {
+  $('#s-date').textContent = dateText(days[i].date)
+  bars.querySelectorAll('i').forEach((b, j) => b.classList.toggle('today', j === i))
 }
 
-function caption(s, index) {
-  const box = $('thCaption')
-  box.classList.remove('show')
-  box.style.setProperty('--c', s.con.color)
-  box.innerHTML = '<span class="tag"><i></i><span></span></span><h3></h3><p></p><span class="meta"></span>'
-  box.querySelector('.tag i').style.background = s.con.color
-  box.querySelector('.tag span').textContent = s.con.label
-  box.querySelector('h3').textContent = s.n
-  box.querySelector('p').textContent = s.d
-  box.querySelector('.meta').textContent = `${s.bayer} · project ${index} of ${stars.length}`
-  void box.getBoundingClientRect()
-  box.classList.add('show')
-}
-
-function reveal(s) {
-  s.g.classList.remove('hidden')
-  s.tr.classList.remove('unborn')
-  if (s.line) s.line.classList.remove('hidden')
-  flare(s)
-  const label = conLabels[s.k]
-  if (label.classList.contains('hidden')) {
-    label.classList.remove('hidden')
-    restart(label, 'appear')
-  }
-  if (s.k === 'skills') burstCluster()
-  ripple(s)
-  ripple(s, 280)
-  sound.births([s.note])
-  const group = groups[s.k]
-  if (group.length > 1 && group[group.length - 1] === s) {
-    setTimeout(() => {
-      glow(s.k)
-      sound.complete()
-    }, 500)
-  }
-  open(s, false)
-  caption(s, updateCount())
-}
-
-function setPlayButton() {
-  const playing = run && !run.paused && !run.done
-  $('playLabel').textContent = !run ? 'Play the month' : run.done ? 'Replay' : run.paused ? 'Resume' : 'Pause'
-  $('playIcon').setAttribute('d', playing ? 'M3 1.5h3v11H3zM8 1.5h3v11H8z' : 'M3 1.5v11l9-5.5z')
-  $('playDur').hidden = Boolean(run)
-}
-
-function onKey(e) {
-  if (e.key === 'Escape') exitTheater()
-  else if (e.key === ' ' && !(e.target instanceof HTMLButtonElement) && e.target.getAttribute('role') !== 'button') {
-    e.preventDefault()
-    togglePause()
-  }
-}
-
-function enterTheater() {
-  if (panel.classList.contains('theater')) return
-  panel.classList.add('theater')
-  document.body.classList.add('in-theater')
-  panel.setAttribute('role', 'dialog')
-  panel.setAttribute('aria-modal', 'true')
-  outside().forEach((n) => (n.inert = true))
+async function playMonth() {
+  const id = ++run
+  paused = false
+  $('#s-pause').textContent = 'Pause'
+  show.hidden = false
+  show.classList.remove('wispr')
   document.body.style.overflow = 'hidden'
-  document.addEventListener('keydown', onKey)
-  $('play').focus()
-}
+  cards.replaceChildren()
+  bars.innerHTML = days.map((_, i) => `<i class="${i >= pivot ? 'after' : ''}"></i>`).join('')
+  const barEls = [...bars.children]
+  let count = 0
+  const start = performance.now()
+  const total = 44000
+  const prog = $('#s-prog')
+  const progress = () => {
+    if (id !== run) return
+    prog.style.width = `${Math.min(100, ((performance.now() - start) / total) * 100)}%`
+    requestAnimationFrame(progress)
+  }
+  requestAnimationFrame(progress)
+  $('#s-count').textContent = '0'
+  sound.startBed()
+  sound.play('whoosh')
 
-function exitTheater() {
-  if (!panel.classList.contains('theater')) return
-  if (run) run.cancelled = true
-  run = null
-  sound.stopPad()
-  cancelAnimationFrame(camFrame)
-  setView(FULL)
-  panel.classList.remove('theater')
-  document.body.classList.remove('in-theater')
-  panel.removeAttribute('role')
-  panel.removeAttribute('aria-modal')
-  outside().forEach((n) => (n.inert = false))
-  document.body.style.overflow = ''
-  document.removeEventListener('keydown', onKey)
-  $('thIntro').hidden = true
-  $('thFinal').hidden = true
-  $('thCaption').classList.remove('show')
-  showNight(current < 0 ? DAYS - 1 : current, false)
-  setPlayButton()
-  $('play').focus()
-}
-
-function togglePause() {
-  if (!run) return
-  if (run.done) return cinema()
-  run.paused = !run.paused
-  if (run.paused) sound.stopPad()
-  else sound.startPad()
-  setPlayButton()
-}
-
-async function cinema() {
-  if (run) run.cancelled = true
-  const r = (run = { cancelled: false, paused: false, done: false, elapsed: 0 })
-  enterTheater()
-  setPlayButton()
-  sound.wake()
-  sound.whoosh()
-  sound.stopPad()
-  sound.startPad()
-  sound.padChord(0)
-  showNight(-1, false)
-  cancelAnimationFrame(camFrame)
-  setView(FULL)
-  $('thCaption').classList.remove('show')
-  $('thDay').textContent = `Day 1 of ${DAYS}`
-  $('thBig').textContent = dateText(0)
-  $('thSub').textContent = ''
-  $('thFinal').hidden = true
-  $('thIntro').hidden = false
-  $('thIntro').classList.remove('out')
   try {
-    await sleep(PACE.intro - 700)
-    $('thIntro').classList.add('out')
-    await sleep(700)
-    $('thIntro').hidden = true
-    for (let day = 0; day < DAYS; day++) {
-      dayUI(day)
-      sound.padChord(Math.floor(day / 7.5))
-      const born = stars.filter((s) => s.day === day)
-      if (!born.length) {
-        sound.tick()
-        if (cam.w < 100) moveCamera(FULL, 1600)
-        await sleep(PACE.quiet)
-        continue
+    await caption('October is <em>Hacktober.</em>', 2000)
+    await caption('So I was already shipping.', 1400)
+    await caption('Typing every prompt.')
+    for (let i = 0; i < pivot; i++) {
+      setDay(i)
+      for (const r of days[i].repos) {
+        count++
+        $('#s-count').textContent = count
+        barEls[i].style.height = `${(days[i].repos.length / max) * 100}%`
+        addCard(`<i style="background:${TOPICS[r.k].color}"></i>${esc(r.n)}`)
+        sound.play('pop', { rate: 0.9 })
+        await wait(420)
       }
-      await sleep(PACE.day * 0.35)
-      for (const s of born) {
-        moveCamera(focusOn(s), 850)
-        await sleep(400)
-        reveal(s)
-        await sleep(PACE.star - 400)
-      }
-      await sleep(PACE.day * 0.65)
+      await wait(320)
     }
-    await finale(r)
-  } catch (e) {
-    if (e !== CANCEL) throw e
+
+    cards.querySelectorAll('.show-card').forEach((c) => c.remove())
+    show.classList.add('wispr')
+    setDay(pivot)
+    sound.play('reveal')
+    await caption(`${dateText(WISPR_DAY)}. <em>Wispr Flow</em> comes in.`, 2400)
+    await caption('Now I just <em>talk.</em>')
+
+    for (let i = pivot; i < DAYS; i++) {
+      setDay(i)
+      for (const r of days[i].repos) {
+        count++
+        $('#s-count').textContent = count
+        barEls[i].style.height = `${(days[i].repos.length / max) * 100}%`
+        addCard(`<i style="background:${TOPICS[r.k].color}"></i>${esc(r.n)}`)
+        sound.play('pop', { rate: 1.1 })
+        await wait(230)
+      }
+      for (const v of VIDEOS.filter((x) => x.c === days[i].date)) {
+        addCard(`▶ ${esc(v.t.length > 46 ? v.t.slice(0, 44) + '…' : v.t)}`, 'video')
+        sound.play('tick')
+        await wait(520)
+      }
+      await wait(240)
+    }
+
+    cards.replaceChildren(el('div', 'big', times))
+    sound.play('finale')
+    await caption('faster, by voice.', 2600)
+    cards.append(
+      el(
+        'div',
+        'finale',
+        `<div><b>${b.projects} → ${a.projects}</b><span>projects</span></div>
+         <div><b>${b.videos} → ${a.videos}</b><span>videos</span></div>
+         <div><b>${fmt(FLOW.words)}</b><span>words dictated</span></div>`,
+      ),
+    )
+    await wait(3400)
+    await caption('October 2026: <em>done.</em>', 3000)
+    sound.stopBed()
+    $('#s-pause').textContent = 'Replay'
+  } catch {
+    // Closed or replayed mid-way.
   }
 }
 
-async function finale(r) {
-  $('thCaption').classList.remove('show')
-  moveCamera(FULL, 1600)
-  await sleep(1600)
-  for (const k of TOPICS) {
-    glow(k)
-    sound.chime(groups[k][0].note)
-    await sleep(320)
-  }
-  meteorShower()
-  await sleep(900)
-  $('thFinal').hidden = false
-  countUp()
-  sound.finale()
-  progress.month = true
-  advance()
-  r.done = true
-  setPlayButton()
-  $('replay').focus()
-  await sleep(Math.max(0, PACE.finale - 1600 - TOPICS.length * 320 - 900))
-  sound.stopPad()
+function closeShow() {
+  run++
+  sound.stopBed()
+  show.hidden = true
+  document.body.style.overflow = ''
+  $('#play').focus()
 }
 
-function countUp() {
-  const nums = [...document.querySelectorAll('.th-stats dd')]
-  if (reducedMotion()) return nums.forEach((n) => (n.textContent = n.dataset.to))
-  const t0 = performance.now()
-  const tick = (now) => {
-    const k = Math.min(1, (now - t0) / 1500)
-    const e = 1 - (1 - k) ** 3
-    nums.forEach((n) => (n.textContent = Math.round(Number(n.dataset.to) * e)))
-    if (k < 1) requestAnimationFrame(tick)
-  }
-  requestAnimationFrame(tick)
-}
-
-$('watch').addEventListener('click', cinema)
-$('play').addEventListener('click', () => (run ? togglePause() : cinema()))
-$('exit').addEventListener('click', exitTheater)
-$('replay').addEventListener('click', cinema)
-$('explore-chart').addEventListener('click', exitTheater)
-$('scrub').addEventListener('input', () => goTo(Number($('scrub').value)))
-
-// Sound on and off.
-function renderSound() {
-  $('sound').setAttribute('aria-pressed', String(soundOn))
-  $('soundLabel').textContent = soundOn ? 'Sound on' : 'Sound off'
-  $('soundWaves').style.display = soundOn ? '' : 'none'
-  $('soundOff').style.display = soundOn ? 'none' : ''
-}
-$('sound').addEventListener('click', () => {
-  soundOn = !soundOn
-  sound.setOn(soundOn)
-  if (soundOn) {
-    sound.wake()
-    sound.chime(57)
-    if (run && !run.paused && !run.done) sound.startPad()
-  }
-  save()
-  renderSound()
+// Playing the month turns the sound on: it is made to be heard, and the mute is one tap away.
+$('#play').addEventListener('click', async () => {
+  if (!sound.enabled) await sound.setEnabled(true)
+  else await sound.unlock()
+  showSound()
+  playMonth()
 })
-
-// Reset asks twice, without a browser dialog.
-let resetArmed = null
-$('reset').addEventListener('click', () => {
-  if (!resetArmed) {
-    $('reset').textContent = 'Click again to reset'
-    resetArmed = setTimeout(() => {
-      resetArmed = null
-      $('reset').textContent = 'Reset progress'
-    }, 3000)
-    return
-  }
-  clearTimeout(resetArmed)
-  resetArmed = null
-  $('reset').textContent = 'Reset progress'
-  progress.charted.clear()
-  progress.month = false
-  progress.peak = false
-  unlocked.clear()
-  save()
-  render()
-  if (selected) renderDetail(selected)
+$('#s-close').addEventListener('click', closeShow)
+$('#s-sound').addEventListener('click', toggleSound)
+$('#s-pause').addEventListener('click', (e) => {
+  if (e.target.textContent === 'Replay') return playMonth()
+  paused = !paused
+  e.target.textContent = paused ? 'Play' : 'Pause'
 })
-
-// ---- The background field: seeded stars that twinkle and drift with the camera -----------------
-
-const canvas = $('field')
-const ctx2d = canvas.getContext('2d')
-let fieldSeed = 42
-const frand = () => (fieldSeed = (fieldSeed * 16807) % 2147483647) / 2147483647
-const field = Array.from({ length: 420 }, () => ({
-  x: frand(),
-  y: frand(),
-  r: frand() < 0.92 ? frand() * 0.7 + 0.2 : frand() * 1.1 + 0.6,
-  a: 0.12 + frand() * 0.45,
-  depth: 0.3 + frand() * 0.7,
-  speed: 0.0006 + frand() * 0.0018,
-  phase: frand() * Math.PI * 2,
-  blue: frand() < 0.15,
-}))
-let size = { w: 0, h: 0 }
-new ResizeObserver(([entry]) => {
-  const { width, height } = entry.contentRect
-  const dpr = Math.min(2, window.devicePixelRatio || 1)
-  size = { w: width, h: height }
-  canvas.width = Math.round(width * dpr)
-  canvas.height = Math.round(height * dpr)
-  ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0)
-  if (reducedMotion()) drawField(0)
-}).observe(canvas)
-
-const wrap01 = (v) => ((v % 1) + 1) % 1
-function drawField(t) {
-  const { w, h } = size
-  ctx2d.clearRect(0, 0, w, h)
-  const px = (cam.x + cam.w / 2 - 50) / 100
-  const py = (cam.y + cam.h / 2 - 29) / 58
-  const zoom = 100 / cam.w
-  const still = reducedMotion()
-  for (const s of field) {
-    const x = wrap01(s.x - px * 0.25 * s.depth) * w
-    const y = wrap01(s.y - py * 0.25 * s.depth) * h
-    ctx2d.globalAlpha = still ? s.a : s.a * (0.65 + 0.35 * Math.sin(t * s.speed + s.phase))
-    ctx2d.fillStyle = s.blue ? '#bcd0ff' : '#f3ead6'
-    ctx2d.beginPath()
-    ctx2d.arc(x, y, s.r * (1 + (zoom - 1) * 0.3 * s.depth), 0, Math.PI * 2)
-    ctx2d.fill()
+addEventListener('keydown', (e) => {
+  if (show.hidden) return
+  if (e.key === 'Escape') closeShow()
+  if (e.key === ' ') {
+    e.preventDefault()
+    $('#s-pause').click()
   }
-}
-function frame(t) {
-  drawField(t)
-  requestAnimationFrame(frame)
-}
-if (!reducedMotion()) requestAnimationFrame(frame)
-
-// At rest: the whole sky, with the newest project open.
-showNight(DAYS - 1, false)
-open(
-  stars.find((s) => s.day === newestDay),
-  false,
-)
-setFilter(null)
-render()
-renderSound()
-setPlayButton()
-setTimeout(() => meteor([96, 3], [70, 13]), 1800)
-
-// Back to top, once the page has scrolled past the first screen.
-let topFrame = 0
-addEventListener(
-  'scroll',
-  () => {
-    cancelAnimationFrame(topFrame)
-    topFrame = requestAnimationFrame(() => ($('toTop').hidden = scrollY < innerHeight))
-  },
-  { passive: true },
-)
-$('toTop').addEventListener('click', () => {
-  scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' })
-  $('play').focus({ preventScroll: true })
 })
+// Restore the sound setting on first interaction (browsers need a tap before audio can start).
+if (sound.enabled) addEventListener('pointerdown', () => sound.unlock(), { once: true })

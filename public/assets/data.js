@@ -1,6 +1,6 @@
-// Every public, non-fork repository in github.com/jars-demo, from the GitHub API on 29 October 2026.
-// n: name, c: created (UTC date), k: constellation, h: homepage, l: main language, d: description.
-export const SNAPSHOT = '2026-10-29'
+// Every public, non-fork project repository in github.com/jars-demo, from the GitHub API on 31 October 2026.
+// n: name, c: created (UTC date), k: topic, h: homepage, v: demo video, l: main language, d: description.
+export const SNAPSHOT = '2026-10-31'
 
 export const REPOS = [
   {
@@ -88,6 +88,7 @@ export const REPOS = [
     c: '2026-10-16',
     k: 'tools',
     h: 'https://wispr.jishanahmed.in',
+    v: 'https://youtu.be/GDPwqEWVzuE',
     l: 'TypeScript',
     d: 'SHIPPED IT? Now understand it. A game that breaks down any code change your AI agent ships: what it did, the engineering behind it, predict-the-behaviour questions and an explain-back round. Built hands-free with Wispr Flow for the WeMakeDevs hackathon.',
   },
@@ -216,6 +217,7 @@ export const REPOS = [
     c: '2026-10-18',
     k: 'found',
     h: 'https://git.jishanahmed.in',
+    v: 'https://youtu.be/OAY3ZDkfUYk',
     l: 'TypeScript',
     d: 'Git good: a playful, hands-on Git workshop with HEAD the cat. Twelve real quests from first commit to merge conflicts, rebase, bisect, reflog and AI agents.',
   },
@@ -260,4 +262,26 @@ export const REPOS = [
     l: 'TypeScript',
     d: 'Whose code is it anyway? A hands-on open source licensing workshop: eight real licensing mistakes in one small project. Choosing a licence, SPDX, keeping notices, Apache NOTICE files, fonts and logos, copyleft dependencies and the AGPL.',
   },
+]
+
+// Topic labels and colours: the validated eight-slot categorical palette for light surfaces.
+export const TOPICS = {
+  ai: { label: 'AI & agents', color: '#6d4fd6' },
+  data: { label: 'Data & databases', color: '#c4541d' },
+  backend: { label: 'Backend & APIs', color: '#13805c' },
+  sec: { label: 'Security', color: '#9a6a00' },
+  ops: { label: 'DevOps & delivery', color: '#c0396f' },
+  found: { label: 'Foundations', color: '#2a6fc9' },
+  tools: { label: 'Developer tools', color: '#0b4f45' },
+  skills: { label: 'Agent skills', color: '#b13b3b' },
+}
+
+// The October uploads on youtube.com/@jishanahmedarshaikh that came out of this work, newest first.
+// id: YouTube video id, t: title, c: published (UTC date), r: the repository it belongs to, if any.
+export const VIDEOS = [
+  { id: 'fztHxrgbt3Q', c: '2026-10-31', t: 'How Hackers Took $6 Billion From Binance Without Stealing a Key', k: 'Explainer' },
+  { id: 'OAY3ZDkfUYk', c: '2026-10-30', t: 'Git and GitHub explained in under 3 minutes', k: 'Explainer', r: 'git-demo' },
+  { id: '_5gdb-rNVYY', c: '2026-10-30', t: '8 Open Source Licensing Mistakes Developers Make (and How to Fix Them)', k: 'Workshop', r: 'licensing-demo' },
+  { id: '9-4LVBFVDww', c: '2026-10-27', t: 'I Built Airflow + DataHub Connectors for Cognee', k: 'Demo', r: 'cognee-data-lab' },
+  { id: 'GDPwqEWVzuE', c: '2026-10-25', t: 'Breakdown: Shipped It? Now Understand It. (Built Hands-Free with Wispr Flow)', k: 'Hackathon entry', r: 'wispr-demo' },
 ]

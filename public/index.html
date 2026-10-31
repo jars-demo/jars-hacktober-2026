@@ -3,25 +3,25 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>October 2026 · JARS DEMO</title>
+    <title>October 2026, shipped by voice · JARS DEMO</title>
     <meta
       name="description"
-      content="Thirty-two JARS DEMO projects in thirty days, as an interactive sky chart: each project a star, lit on the day it was created and grouped by topic."
+      content="I was already shipping in October, because October is Hacktober. Then Wispr Flow came in on 16 October and I got 3x faster: every JARS DEMO project, video and prompt, dictated."
     />
-    <meta name="theme-color" content="#090c14" />
+    <meta name="theme-color" content="#fbf7f1" />
     <link rel="canonical" href="https://hacktober2026.jishanahmed.in/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="JARS DEMO" />
     <meta property="og:url" content="https://hacktober2026.jishanahmed.in/" />
-    <meta property="og:title" content="Thirty-two projects in thirty days" />
+    <meta property="og:title" content="I didn't type my October. I said it." />
     <meta
       property="og:description"
-      content="The JARS DEMO October, 2026: 32 projects and 63 agent skills, as a sky chart you can play."
+      content="32 projects, 5 videos and every prompt to my coding agent, dictated with Wispr Flow. 3x faster after 16 October."
     />
     <meta property="og:image" content="https://hacktober2026.jishanahmed.in/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="A dark sky chart with eight constellations of JARS DEMO projects" />
+    <meta property="og:image:alt" content="October 2026, shipped by voice: 3x faster after Wispr Flow" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -31,347 +31,183 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap"
     />
     <link rel="stylesheet" href="/assets/styles.css" />
     <script type="module" src="/assets/app.js"></script>
   </head>
   <body>
-    <a class="skip" href="#explore">Skip to the chart</a>
+    <a class="skip" href="#main">Skip to content</a>
 
     <header class="nav">
-      <div class="nav-in">
-        <a class="brand" href="https://github.com/jars-demo" aria-label="JARS DEMO on GitHub">
-          <img src="/favicon.svg" width="28" height="28" alt="" />
-          <span>JARS DEMO</span>
-        </a>
-        <span class="crumb">October 2026</span>
-        <nav aria-label="Sections">
-          <a href="#explore">Explore</a>
-          <a href="#badges">Badges</a>
-          <a href="#projects">Projects</a>
-          <a class="source" href="https://github.com/jars-demo/jars-hacktober-2026">
-            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-              <path
-                fill="currentColor"
-                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.290 6.53 5.47 7.59.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.88.87 2.34.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.530-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.070-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"
-              />
-            </svg>
-            <span>Source</span>
-          </a>
-        </nav>
-      </div>
+      <a class="brand" href="#top"><span class="dot" aria-hidden="true"></span>JARS DEMO <em>· October 2026</em></a>
+      <nav aria-label="Sections">
+        <a href="#story">Story</a>
+        <a href="#videos">Videos</a>
+        <a href="#how">How I build</a>
+        <a href="#projects">Projects</a>
+      </nav>
+      <button class="sound" id="sound" type="button" aria-pressed="false" aria-label="Sound">
+        <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="label">Sound off</span>
+      </button>
     </header>
 
-    <main class="wrap">
-      <section class="hero" aria-labelledby="title">
-        <p class="pill"><span class="pulse" aria-hidden="true"></span>Month in review · 30 Sep to 29 Oct 2026</p>
-        <h1 id="title">Thirty-two projects in thirty days.</h1>
-        <p class="lede">
-          Every public project in the JARS DEMO organization, plotted on the day its repository was created and grouped
-          by topic into constellations. Watch the month unfold, open each star and collect all twelve badges.
+    <main id="main">
+      <section class="hero" id="top">
+        <p class="eyebrow reveal">Hacktober 2026 · #NoHandsChallenge</p>
+        <h1 class="reveal">I didn't type my October.<br /><em>I said it.</em></h1>
+        <p class="lede reveal">
+          I was already shipping, because October is Hacktober. Then on <b>16 October</b> Wispr Flow came in, and I
+          got <b class="hl" data-times>3×</b> faster. Every project, every video and every prompt to my coding agent
+          after that was spoken, not typed.
         </p>
-        <div class="hero-cta">
-          <button class="btn primary lg" id="watch" type="button">
-            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-              <path d="M3 1.5v11l9-5.5z" fill="currentColor" />
-            </svg>
-            Watch the month <span class="dur" id="watchDur">1:23</span>
-          </button>
-          <a class="btn lg" href="#projects">Browse all projects</a>
+        <div class="cta reveal">
+          <button class="btn primary" id="play" type="button"><span aria-hidden="true">▶</span> Play my October</button>
+          <a class="btn" href="#projects">See the work</a>
         </div>
-        <dl class="kpis">
-          <div>
-            <dt>Projects</dt>
-            <dd id="kpiProjects">32</dd>
-          </div>
-          <div>
-            <dt>Agent skills</dt>
-            <dd>63</dd>
-          </div>
-          <div>
-            <dt>Topics</dt>
-            <dd id="kpiTopics">8</dd>
-          </div>
-          <div>
-            <dt>Busiest day</dt>
-            <dd><span id="kpiPeak">9</span> <small id="kpiPeakDay">on 17 Oct</small></dd>
-          </div>
-        </dl>
+        <dl class="stats reveal" id="hero-stats"></dl>
       </section>
 
-      <section class="panel" id="explore" aria-labelledby="exploreTitle">
-        <h2 id="exploreTitle" class="sr-only">Sky chart</h2>
-        <div class="toolbar">
-          <span class="th-brand th-only">
-            <img src="/favicon.svg" width="26" height="26" alt="" />
-            <span>JARS DEMO · October 2026</span>
-          </span>
-          <div class="tools">
-            <button class="btn primary" id="play" type="button">
-              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-                <path id="playIcon" d="M3 1.5v11l9-5.5z" fill="currentColor" />
-              </svg>
-              <span id="playLabel">Play the month</span>
-              <span class="dur" id="playDur">1:23</span>
-            </button>
-            <button class="btn" id="sound" type="button" aria-pressed="true">
-              <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
-                <path d="M2.5 6.5h3l4-3.5v12l-4-3.5h-3z" fill="currentColor" />
-                <path
-                  id="soundWaves"
-                  d="M12 6a4 4 0 0 1 0 6M14 4a7 7 0 0 1 0 10"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.4"
-                  stroke-linecap="round"
-                />
-                <path
-                  id="soundOff"
-                  d="M12.5 6.5l4 5M16.5 6.5l-4 5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.4"
-                  stroke-linecap="round"
-                />
-              </svg>
-              <span id="soundLabel">Sound on</span>
-            </button>
-          </div>
-          <div class="th-time th-only" aria-hidden="true">
-            <span class="th-bar"><i id="thBar"></i></span>
-            <span id="thClock">0:00 / 1:23</span>
-          </div>
-          <div class="progress" aria-label="Your progress">
-            <div class="meter">
-              <span class="meter-label">Charted</span>
-              <span class="meter-value"><b id="chartedCount">0</b> / <span id="chartedTotal">32</span></span>
-              <span class="track" aria-hidden="true"><i id="chartedBar"></i></span>
-            </div>
-            <div class="meter">
-              <span class="meter-label">Badges</span>
-              <span class="meter-value"><b id="badgeCount">0</b> / <span id="badgeTotal">12</span></span>
-              <span class="track" aria-hidden="true"><i id="badgeBar"></i></span>
-            </div>
-          </div>
-          <button class="btn th-only" id="exit" type="button" aria-label="Exit (Esc)">
-            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-              <path d="M2.5 2.5l9 9M11.5 2.5l-9 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-            </svg>
-            <span>Exit</span>
-          </button>
+      <section class="story" id="story">
+        <h2 class="reveal">Same month. <em>Two speeds.</em></h2>
+        <div class="versus" id="versus"></div>
+      </section>
+
+      <section class="spike" aria-labelledby="spike-h">
+        <div class="head reveal">
+          <h2 id="spike-h">Projects shipped, day by day</h2>
+          <p>One bar per day, from 30 September to 31 October. Tap a bar to see what shipped.</p>
         </div>
+        <div class="chart reveal" id="chart" role="img"></div>
+        <p class="tip" id="tip" aria-live="polite">&nbsp;</p>
+      </section>
 
-        <div class="chips" id="chips" role="group" aria-label="Highlight a topic"></div>
-
-        <div class="stage">
-          <figure class="sky">
-            <canvas id="field" aria-hidden="true"></canvas>
-            <svg id="sky" viewBox="0 0 100 58" role="group" aria-label="Sky chart of the JARS DEMO projects">
-              <defs>
-                <radialGradient id="halo">
-                  <stop offset="0" stop-color="#fff7e3" stop-opacity="0.9" />
-                  <stop offset="0.35" stop-color="#f2c76b" stop-opacity="0.28" />
-                  <stop offset="1" stop-color="#f2c76b" stop-opacity="0" />
-                </radialGradient>
-                <linearGradient id="trail" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="9" y2="-3.6">
-                  <stop offset="0" stop-color="#fff7e3" stop-opacity="1" />
-                  <stop offset="1" stop-color="#fff7e3" stop-opacity="0" />
-                </linearGradient>
-              </defs>
-              <g id="graticule"></g>
-              <g id="lines"></g>
-              <g id="labels"></g>
-              <g id="cluster"></g>
-              <g id="fx"></g>
-              <g id="stars"></g>
-            </svg>
-            <div class="th-date th-only" aria-hidden="true">
-              <span class="th-day" id="thDay">Day 1 of 30</span>
-              <span class="th-big" id="thBig">30 Sep</span>
-              <span class="th-sub" id="thSub"></span>
-            </div>
-            <div class="th-count th-only" aria-hidden="true">
-              <b id="thCount">0</b>
-              <span>projects</span>
-            </div>
-            <div class="th-caption th-only" id="thCaption"></div>
-            <div class="th-card th-intro" id="thIntro" hidden>
-              <p class="th-eyebrow">JARS DEMO · October 2026</p>
-              <h2>Thirty days. Thirty-two projects.</h2>
-              <p class="th-lead">Watch them appear, one by one.</p>
-            </div>
-            <div class="th-card th-final" id="thFinal" hidden>
-              <p class="th-eyebrow">October 2026 · complete</p>
-              <h2>One month. One sky.</h2>
-              <dl class="th-stats">
-                <div>
-                  <dt>projects</dt>
-                  <dd data-to="32">0</dd>
-                </div>
-                <div>
-                  <dt>agent skills</dt>
-                  <dd data-to="63">0</dd>
-                </div>
-                <div>
-                  <dt>topics</dt>
-                  <dd data-to="8">0</dd>
-                </div>
-                <div>
-                  <dt>days</dt>
-                  <dd data-to="30">0</dd>
-                </div>
-              </dl>
-              <div class="th-actions">
-                <button class="btn primary lg" id="replay" type="button">Replay</button>
-                <button class="btn lg" id="explore-chart" type="button">Explore the chart</button>
-              </div>
-            </div>
-          </figure>
-          <aside class="detail" id="detail" aria-live="polite"></aside>
+      <section class="featured" aria-labelledby="feat-h">
+        <h2 id="feat-h" class="reveal">The headliners</h2>
+        <div class="feat-grid">
+          <article class="feat reveal">
+            <p class="tag">Hackathon entry · Builders track</p>
+            <h3>Breakdown</h3>
+            <p>
+              Shipped it? Now understand it. A game that breaks down any code change your AI agent ships: what it did,
+              the engineering behind it and an explain-back round. Built hands-free with Wispr Flow.
+            </p>
+            <div class="yt" data-yt="GDPwqEWVzuE" data-title="Breakdown demo"></div>
+            <p class="links">
+              <a href="https://wispr.jishanahmed.in">Live site</a>
+              <a href="https://github.com/jars-demo/wispr-demo">Code</a>
+            </p>
+          </article>
+          <article class="feat reveal">
+            <p class="tag">New today · Explainer</p>
+            <h3>The $6 billion Binance heist</h3>
+            <p>
+              How hackers took $6 billion from Binance without stealing a key. Script dictated, voiced in ElevenLabs,
+              and every scene, caption and sound built with my coding agent.
+            </p>
+            <div class="yt" data-yt="fztHxrgbt3Q" data-title="The $6 billion Binance heist"></div>
+            <p class="links"><a href="https://youtu.be/fztHxrgbt3Q">Watch on YouTube</a></p>
+          </article>
         </div>
+      </section>
 
-        <div class="timeline">
-          <div class="tl-head">
-            <span class="day" id="nightLabel"></span>
-            <span class="lit"><b id="count">32</b> of 32 lit</span>
+      <section class="videos" id="videos" aria-labelledby="vid-h">
+        <div class="head reveal">
+          <h2 id="vid-h">Videos this October</h2>
+          <p>
+            None before 16 October. Since then, every script was dictated.
+            <a href="https://www.youtube.com/@jishanahmedarshaikh">See the channel</a>
+          </p>
+        </div>
+        <div class="vid-grid" id="vid-grid"></div>
+      </section>
+
+      <section class="how" id="how" aria-labelledby="how-h">
+        <h2 id="how-h" class="reveal">How I build now. <em>Wispr Flow is everywhere.</em></h2>
+        <div class="how-grid">
+          <div class="then reveal">
+            <p class="tag">Before 16 October</p>
+            <h3>Think, type, type, type</h3>
+            <ol>
+              <li>Type the spec sheet</li>
+              <li>Type the prompt for the coding agent</li>
+              <li>Type the corrections, fix the typos</li>
+              <li>Type the script, word by word</li>
+              <li>Type more prompts for the video</li>
+            </ol>
+            <p class="note">It worked. It was just slow: my hands were the bottleneck.</p>
           </div>
-          <div class="bars-wrap">
-            <div class="bars" id="bars" aria-hidden="true"></div>
-            <div class="tip" id="tip" hidden></div>
-          </div>
-          <label for="scrub" class="sr-only">Day</label>
-          <input class="scrub" id="scrub" type="range" min="0" max="29" value="29" step="1" />
-          <div class="ticks" aria-hidden="true">
-            <span>30 Sep</span><span>10 Oct</span><span>20 Oct</span><span>29 Oct</span>
+          <div class="now reveal">
+            <p class="tag">Since 16 October</p>
+            <h3>Talk, and it ships</h3>
+            <ol id="steps"></ol>
           </div>
         </div>
       </section>
 
-      <section class="section" id="badges" aria-labelledby="badgesTitle">
-        <div class="section-head">
-          <div>
-            <h2 id="badgesTitle">Badges</h2>
-            <p class="muted">Progress is kept in this browser only.</p>
-          </div>
-          <button class="link" id="reset" type="button">Reset progress</button>
+      <section class="projects" id="projects" aria-labelledby="proj-h">
+        <div class="head reveal">
+          <h2 id="proj-h">Every project</h2>
+          <p id="proj-count"></p>
         </div>
-        <ul class="badges" id="badgeList"></ul>
-      </section>
-
-      <section class="section" id="projects" aria-labelledby="projectsTitle">
-        <div class="section-head">
-          <div>
-            <h2 id="projectsTitle">All projects</h2>
-            <p class="muted" id="projectsNote">Oldest first. Select a row to find it on the chart.</p>
-          </div>
+        <div class="filters reveal">
+          <div class="chips" id="chips" role="group" aria-label="Filter by topic"></div>
           <label class="search">
-            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-              <circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5" />
-              <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-            </svg>
-            <span class="sr-only">Search projects</span>
-            <input id="search" type="search" placeholder="Search projects" autocomplete="off" />
+            <span class="sr">Search projects</span>
+            <input id="q" type="search" placeholder="Search projects" autocomplete="off" />
           </label>
         </div>
-        <div class="filters">
-          <label class="field">
-            <span>Topic</span>
-            <select id="fTopic"><option value="">All topics</option></select>
-          </label>
-          <label class="field">
-            <span>Language</span>
-            <select id="fLang"><option value="">All languages</option></select>
-          </label>
-          <label class="field">
-            <span>Links</span>
-            <select id="fKind">
-              <option value="">Any</option>
-              <option value="site">Live site</option>
-              <option value="video">Demo video</option>
-              <option value="repo">Repository only</option>
-            </select>
-          </label>
-          <button class="link" id="fClear" type="button" hidden>Clear filters</button>
+        <div class="proj-grid" id="proj-grid"></div>
+        <p class="empty" id="empty" hidden>No projects match.</p>
+      </section>
+
+      <section class="flow" id="flow" aria-labelledby="flow-h">
+        <div class="flow-text reveal">
+          <p class="tag">My Wispr Flow usage</p>
+          <h2 id="flow-h"><span data-words></span> <em>words, spoken.</em></h2>
+          <p id="flow-line"></p>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Created</th>
-                <th scope="col">Project</th>
-                <th scope="col">Topic</th>
-                <th scope="col">Language</th>
-                <th scope="col">Links</th>
-                <th scope="col"><span class="sr-only">Charted</span></th>
-              </tr>
-            </thead>
-            <tbody id="rows"></tbody>
-          </table>
-        </div>
-        <p class="empty" id="empty" hidden>No projects match these filters.</p>
-        <nav class="pager" id="pager" aria-label="Project pages">
-          <p class="muted" id="pageInfo" aria-live="polite"></p>
-          <div class="pages">
-            <button class="page-step" id="prev" type="button">← Previous</button>
-            <span class="page-nums" id="pageNums"></span>
-            <button class="page-step" id="next" type="button">Next →</button>
-          </div>
-        </nav>
+        <img class="card reveal" id="flow-card" alt="" width="1728" height="1170" loading="lazy" />
+      </section>
+
+      <section class="end">
+        <h2 class="reveal">October 2026: <em>done.</em></h2>
+        <p class="reveal">Thank you, Hacktober. Thank you, Wispr Flow. On to November.</p>
+        <p class="social reveal">
+          <a href="https://github.com/jars-demo">GitHub</a>
+          <a href="https://www.youtube.com/@jishanahmedarshaikh">YouTube</a>
+          <a href="https://wispr.jishanahmed.in">Breakdown</a>
+        </p>
       </section>
     </main>
 
-    <footer class="foot">
-      <div class="foot-in">
-        <p>
-          Data from the GitHub API on 29 October 2026: 32 public repositories in
-          <a href="https://github.com/jars-demo">jars-demo</a>, forks left out. The cluster of agent skills has one
-          point for each of the 63 skills in <a href="https://github.com/jars-demo/jars-skills">jars-skills</a>. Every
-          sound is made in your browser.
-        </p>
-        <p>
-          Made by <a href="https://jishanahmed.in">Jishanahmed AR Shaikh</a> ·
-          <a href="https://github.com/jars-demo/jars-hacktober-2026">Source</a> · MIT licence · An independent project,
-          not affiliated with Hacktoberfest or DigitalOcean.
-        </p>
-      </div>
+    <footer>
+      <p>
+        By Jishan Ahmed Shaikh · Data from the GitHub API, YouTube and my Wispr Flow usage card on
+        <span id="asof"></span>.
+      </p>
+      <p>
+        Wispr Flow, YouTube and GitHub are trademarks of their owners. This page is not affiliated with or endorsed by
+        them. Sounds made with ElevenLabs.
+      </p>
     </footer>
 
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-    <aside class="jars" id="jars" aria-label="JARS, your companion" hidden>
-      <button class="jars-btn" type="button" aria-label="Ask JARS for a tip">
-        <svg width="48" height="56" viewBox="0 0 48 56" aria-hidden="true">
-          <defs>
-            <clipPath id="jarsClip">
-              <path d="M13 15h22q5 0 5 5v24q0 8-8 8H16q-8 0-8-8V20q0-5 5-5z" />
-            </clipPath>
-          </defs>
-          <path class="jars-glass" d="M13 15h22q5 0 5 5v24q0 8-8 8H16q-8 0-8-8V20q0-5 5-5z" />
-          <rect class="jars-level" x="8" y="50" width="32" height="0" clip-path="url(#jarsClip)" />
-          <path class="jars-star" d="M15 44l1 2.2 2.2 1-2.2 1L15 50.4l-1-2.2-2.2-1 2.2-1z" />
-          <path class="jars-star" d="M33 40l.8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8z" />
-          <path class="jars-star" d="M26 46l.6 1.3 1.3.6-1.3.6-.6 1.3-.6-1.3-1.3-.6 1.3-.6z" />
-          <rect class="jars-lid" x="10" y="6" width="28" height="9" rx="3" />
-          <circle class="jars-eye" cx="19" cy="29" r="2.2" />
-          <circle class="jars-eye" cx="29" cy="29" r="2.2" />
-          <path class="jars-smile" d="M20 34q4 3.5 8 0" />
-        </svg>
-      </button>
-      <div class="jars-say" role="status" aria-live="polite" hidden>
-        <b>JARS</b>
-        <p></p>
-        <button class="jars-hush" type="button" aria-label="Close">×</button>
+    <div class="show" id="show" hidden role="dialog" aria-modal="true" aria-label="My October, played">
+      <div class="show-top">
+        <span class="show-date" id="s-date">30 Sep</span>
+        <span class="show-count"><b id="s-count">0</b> projects</span>
+        <span class="show-ctl">
+          <button type="button" id="s-sound" aria-label="Toggle sound">Sound</button>
+          <button type="button" id="s-pause" aria-label="Pause">Pause</button>
+          <button type="button" id="s-close" aria-label="Close">Close</button>
+        </span>
       </div>
-    </aside>
-
-    <button class="to-top" id="toTop" type="button" aria-label="Back to top" hidden>
-      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-        <path d="M8 13V3M3.5 7.5L8 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-    </button>
-    <noscript
-      ><p class="wrap">This chart needs JavaScript. Every project is listed at github.com/jars-demo.</p></noscript
-    >
+      <div class="show-stage">
+        <p class="show-cap" id="s-cap"></p>
+        <div class="show-cards" id="s-cards"></div>
+      </div>
+      <div class="show-bars" id="s-bars" aria-hidden="true"></div>
+      <div class="show-progress"><i id="s-prog"></i></div>
+    </div>
   </body>
 </html>
