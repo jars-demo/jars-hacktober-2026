@@ -243,6 +243,12 @@ footer .name { font-weight: 700; color: var(--ink); font-size: 15px; }
 .show.paused * { animation-play-state: paused !important; }
 
 /* Hero typewriter and voice */
+.hero h1 { min-height: 3em; }
+.hero .caret { display: none; }
+.hero h1.tw .caret { display: inline-block; width: 0.05em; height: 0.8em; margin-left: 0.04em; vertical-align: -0.04em; background: var(--accent); animation: blink 0.9s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.hero h1.tw .said { transition: opacity 0.3s; }
+.hero h1.tw .said.fade { opacity: 0; }
 .hero h1.tw .ch { opacity: 0; }
 .hero h1.tw .ch.on { opacity: 1; }
 .hero h1.tw .ch.cur { position: relative; }

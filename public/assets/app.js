@@ -67,7 +67,15 @@ stack.addEventListener('pointerleave', () => {
 })
 $('#flow-cap').textContent = `${FLOW.cards.length > 1 ? 'Tap to flip through my' : 'My'} Wispr Flow usage · ${dateText(FLOW.asOf)}`
 
-// The headline types itself out, then the second line is spoken: whole words, with the voice bars.
+// The headline plays with its own words, on a loop: what I didn't type is typed out and backspaced
+// letter by letter, and what I said arrives whole, spoken, with the voice bars.
+const PLAYS = [
+  ['my October.', 'I said it.'],
+  ['my prompts.', 'I said them.'],
+  ['my specs.', 'I spoke them.'],
+  ['my scripts.', 'I voiced them.'],
+  [`${fmt(FLOW.words)} words.`, 'I said every one.'],
+]
 const h1 = $('#hero-h')
 const voice = $('#voice')
 voice.innerHTML = '<i></i>'.repeat(48)
@@ -86,28 +94,42 @@ const drawVoice = (now) => {
 }
 if (!reduced) {
   requestAnimationFrame(drawVoice)
-  const l1 = h1.querySelector('.l1')
-  const l2 = h1.querySelector('.said')
-  l1.innerHTML = [...l1.textContent].map((c) => `<span class="ch">${c === ' ' ? ' ' : esc(c)}</span>`).join('')
-  l2.innerHTML = l2.textContent.split(' ').map((w) => `<span class="wd">${esc(w)}</span>`).join(' ')
+  const obj = h1.querySelector('.obj')
+  const said = h1.querySelector('.said')
   h1.classList.add('tw')
-  ;(async () => {
-    const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
-    await sleep(400)
-    for (const c of l1.querySelectorAll('.ch')) {
-      c.classList.add('on', 'cur')
-      await sleep(c.textContent === ' ' ? 60 : 75)
-      c.classList.remove('cur')
-    }
-    await sleep(500)
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+  const speak = async (text) => {
+    said.classList.remove('in', 'fade')
+    said.innerHTML = text.split(' ').map((w) => `<span class="wd">${esc(w)}</span>`).join(' ')
     speaking = 1
-    for (const w of l2.querySelectorAll('.wd')) {
+    for (const w of said.querySelectorAll('.wd')) {
       w.classList.add('on')
-      await sleep(260)
+      await sleep(240)
     }
-    l2.classList.add('in')
-    await sleep(900)
+    said.classList.add('in')
+    await sleep(700)
     speaking = 0
+  }
+  ;(async () => {
+    obj.textContent = ''
+    said.textContent = ''
+    await sleep(500)
+    for (let n = 0; ; n = (n + 1) % PLAYS.length) {
+      const [what, line] = PLAYS[n]
+      for (const ch of what) {
+        obj.textContent += ch
+        await sleep(ch === ' ' ? 55 : 80)
+      }
+      await sleep(300)
+      await speak(line)
+      await sleep(2600)
+      said.classList.add('fade')
+      while (obj.textContent.length) {
+        obj.textContent = obj.textContent.slice(0, -1)
+        await sleep(32)
+      }
+      await sleep(250)
+    }
   })()
 }
 
