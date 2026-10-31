@@ -3,7 +3,7 @@
 import { REPOS, TOPICS, VIDEOS } from './data.js'
 import { FLOW, WISPR_DAY } from './flow.js'
 import { DAYS, byDay, dateText, dayIndex, fmt, matches, split, ytId } from './model.js'
-import { GLYPH, initials, playMonth } from './show.js'
+import { initials, playMonth } from './show.js'
 
 const $ = (s) => document.querySelector(s)
 const el = (tag, cls, html) => {
@@ -230,7 +230,7 @@ $('#vid-grid').innerHTML = VIDEOS.filter((v) => !featured.includes(v.id))
     const r = v.r && repoOf(v.r)
     return `<article class="vid"><div class="yt" data-yt="${v.id}" data-title="${esc(v.t)}"></div>
     <p class="label">${v.k} · ${dateText(v.c)}</p><p class="t">${esc(v.t)}</p>
-    ${r && r.h && !ytId(r.h) ? `<p class="d"><a href="${r.h}">Try the project</a></p>` : ''}</article>`
+    ${r ? `<p class="d links">${r.h && !ytId(r.h) ? `<a href="${r.h}">Try the project</a>` : ''}<a href="https://github.com/jars-demo/${r.n}">Code</a></p>` : ''}</article>`
   })
   .join('')
 document.querySelectorAll('.yt').forEach(lite)
@@ -288,7 +288,7 @@ function renderProjects() {
       const t = TOPICS[r.k]
       const video = r.v || (ytId(r.h) ? r.h : null)
       const site = r.h && !ytId(r.h) ? r.h : null
-      return `<article class="proj" style="--c:${t.color}"><span class="pip" aria-hidden="true">${initials(r.n)}<i>${GLYPH[r.k]}</i></span><div class="meta">${t.label} · ${dateText(r.c)}</div>
+      return `<article class="proj" style="--c:${t.color}"><span class="pip" aria-hidden="true">${initials(r.n)}</span><div class="meta">${t.label} · ${dateText(r.c)}</div>
       <h3>${esc(r.n)}</h3><p>${esc(r.d)}</p>${r.c >= WISPR_DAY ? '<span class="wf">Built leveraging WisprFlow</span>' : ''}
       <p class="links">${site ? `<a href="${site}">Live</a>` : ''}<a href="https://github.com/jars-demo/${r.n}">Code</a>${
         video ? `<a href="${video}">Video</a>` : ''
