@@ -4,6 +4,7 @@ import { REPOS, TOPICS, VIDEOS } from './data.js'
 import { FLOW, WISPR_DAY } from './flow.js'
 import { DAYS, byDay, dateText, dayIndex, fmt, matches, split, ytId } from './model.js'
 import { initials, playMonth } from './show.js'
+import * as music from './music.js'
 
 const $ = (s) => document.querySelector(s)
 const el = (tag, cls, html) => {
@@ -356,5 +357,17 @@ toTop.addEventListener('click', () => scrollTo({ top: 0, behavior: reduced ? 'au
 const names = [...REPOS].sort((x, y) => x.c.localeCompare(y.c)).map((r) => `<span style="--c:${TOPICS[r.k].color}">${esc(r.n)}</span>`).join('')
 $('#marquee').innerHTML = `<div class="row">${names}${names}</div><div class="row rev">${names}${names}</div>`
 
-$('#play').addEventListener('click', playMonth)
-$('#play-nav').addEventListener('click', playMonth)
+// Music: a quiet toggle in the nav; playing the month starts it unless it was turned off.
+const musicBtn = $('#music')
+const showMusic = (on) => {
+  musicBtn.setAttribute('aria-pressed', String(on))
+  musicBtn.querySelector('.ml').textContent = on ? 'Music on' : 'Music off'
+}
+music.onChange(showMusic)
+musicBtn.addEventListener('click', music.toggle)
+const start = () => {
+  music.playUnlessMuted()
+  playMonth()
+}
+$('#play').addEventListener('click', start)
+$('#play-nav').addEventListener('click', start)
